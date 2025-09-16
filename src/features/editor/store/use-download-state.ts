@@ -21,8 +21,10 @@ function htmlToPlainTextWithNewlines(html?: string): string {
     container.innerHTML = normalized;
     let text = (container.textContent || container.innerText || "");
     text = text.replace(/\u00A0/g, " "); // decode &nbsp;
-    // Collapse multiple blank lines, trim ends
-    text = text.replace(/\r?\n\s*\r?\n+/g, "\n").trim();
+    // Normalize CRLF to LF; preserve all consecutive newlines as-is
+    text = text.replace(/\r\n/g, "\n");
+    // Trim but do not collapse internal newlines
+    text = text.replace(/^\s+|\s+$/g, "");
     return text;
   } catch {
     return html;
