@@ -64,8 +64,8 @@ const TextLayer: React.FC<{
 			ref={divRef}
 			contentEditable={editable}
 			onClick={handleClick}
-			onInput={(ev) => onChange?.(id, (ev.target as any).innerText)}
-			onBlur={(ev) => onBlur?.(id, (ev.target as any).innerText)}
+			onInput={(ev) => onChange?.(id, (ev.target as any).innerHTML)}
+			onBlur={(ev) => onBlur?.(id, (ev.target as any).innerHTML)}
 			style={{
 				height: "100%",
 				boxShadow: "none",
@@ -76,10 +76,9 @@ const TextLayer: React.FC<{
 				width: "100%",
 			}}
 			suppressContentEditableWarning
-			// dangerouslySetInnerHTML={{ __html: content }}
+			dangerouslySetInnerHTML={{ __html: content }}
 			className="designcombo_textLayer"
 		>
-			{content}
 		</div>
 	);
 };
