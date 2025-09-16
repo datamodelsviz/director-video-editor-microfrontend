@@ -85,6 +85,16 @@ function serializeDesign(design: IDesign): IDesign {
 
     (cloned as any).trackItemsMap = clonedItems;
     
+    // After cloning, transform text items to use <br/> instead of \n for line breaks
+    for (const [itemId, item] of Object.entries<any>(clonedItems)) {
+      if (item?.type === "text" && item?.details && typeof item.details.text === "string") {
+        // First, normalize any existing HTML to plain text with newlines
+        const plain = htmlToPlainTextWithNewlines(item.details.text);
+        // Then convert newlines to <br/> tags for backend consumption
+        item.details.text = plain.replace(/\n/g, "<br/>");
+      }
+    }
+    
     console.log('🔍 Serialized payload trackItemsMap:', cloned);
     return cloned;
   } catch (e) {
