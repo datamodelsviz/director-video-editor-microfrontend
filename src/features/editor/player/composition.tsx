@@ -50,14 +50,14 @@ const Composition = () => {
 			textTransform,
 		} = textDiv.style;
 		const { width } = elRef.style;
-		if (!elRef.innerText) return;
+		if (!elRef.innerHTML) return;
 		const newHeight = calculateTextHeight({
 			family: fontFamily,
 			fontSize,
 			fontWeight,
 			letterSpacing,
 			lineHeight,
-			text: elRef.innerText || "",
+			text: elRef.innerHTML || "",
 			textShadow: textShadow,
 			webkitTextStroke,
 			width,
@@ -84,14 +84,14 @@ const Composition = () => {
 			textTransform,
 		} = textDiv.style;
 		const { width } = elRef.style;
-		if (!elRef.innerText) return;
+		if (!elRef.innerHTML) return;
 		const newHeight = calculateTextHeight({
 			family: fontFamily,
 			fontSize,
 			fontWeight,
 			letterSpacing,
 			lineHeight,
-			text: elRef.innerText || "",
+			text: elRef.innerHTML || "",
 			textShadow: textShadow,
 			webkitTextStroke,
 			width,
@@ -137,7 +137,7 @@ const Composition = () => {
 							payload: {
 								[editableTextId]: {
 									details: {
-										text: element?.textContent || "",
+										text: element?.innerHTML || "",
 									},
 								},
 							},
