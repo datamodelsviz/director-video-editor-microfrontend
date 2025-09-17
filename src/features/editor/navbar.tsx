@@ -253,7 +253,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
 
   const handleLoad = async () => {
     const payload = {
-      id: "BJhgKLUdA6Z36k6T",
+      id: "ITRvUWizSBcgo1sM",
       size: {
         width: 1080,
         height: 1920,
@@ -261,7 +261,34 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       fps: 30,
       tracks: [
         {
-          id: "AMLP4LsUeVB7Swcr_KzGA",
+          id: "MjHP7vh9MxMfy7j9sEGEZ",
+          accepts: [
+            "text",
+            "image",
+            "video",
+            "audio",
+            "composition",
+            "caption",
+            "template",
+            "customTrack",
+            "customTrack2",
+            "illustration",
+            "custom",
+            "main",
+            "shape",
+            "linealAudioBars",
+            "radialAudioBars",
+            "progressFrame",
+            "progressBar",
+            "rect",
+          ],
+          type: "audio",
+          items: ["pLbo2d7SWwCQqOTm"],
+          magnetic: false,
+          static: false,
+        },
+        {
+          id: "MmNGcBsRoDxATxfFINWRy",
           accepts: [
             "text",
             "image",
@@ -283,12 +310,12 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             "rect",
           ],
           type: "text",
-          items: ["oV7VkoMsPBBekjyD"],
+          items: ["QCULubmkiPjXL9iK"],
           magnetic: false,
           static: false,
         },
         {
-          id: "jtB8ovabVN3wcCrUYOcZx",
+          id: "87v4AMQPwQsggse2ZPbUe",
           accepts: [
             "text",
             "image",
@@ -310,12 +337,12 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             "rect",
           ],
           type: "image",
-          items: ["jgE3gn55tJrrYDHv"],
+          items: ["RjEc6eNTXUHvFkdf"],
           magnetic: false,
           static: false,
         },
         {
-          id: "PJNBPPp5t5t5PD7CE4RRf",
+          id: "KOai2qUuYI8tNK1h5Pn3S",
           accepts: [
             "text",
             "image",
@@ -337,15 +364,15 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             "rect",
           ],
           type: "video",
-          items: ["J6Or4cALgSDCJDnB"],
+          items: ["Nl88NJRd1btWW"],
           magnetic: false,
           static: false,
         },
       ],
-      trackItemIds: ["J6Or4cALgSDCJDnB", "jgE3gn55tJrrYDHv", "oV7VkoMsPBBekjyD"],
+      trackItemIds: ["Nl88NJRd1btWW", "RjEc6eNTXUHvFkdf", "QCULubmkiPjXL9iK", "pLbo2d7SWwCQqOTm"],
       trackItemsMap: {
-        "J6Or4cALgSDCJDnB": {
-          id: "J6Or4cALgSDCJDnB",
+        "Nl88NJRd1btWW": {
+          id: "Nl88NJRd1btWW",
           details: {
             width: 360,
             height: 640,
@@ -388,8 +415,8 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
           duration: 23870.113,
           isMain: false,
         },
-        "jgE3gn55tJrrYDHv": {
-          id: "jgE3gn55tJrrYDHv",
+        "RjEc6eNTXUHvFkdf": {
+          id: "RjEc6eNTXUHvFkdf",
           type: "image",
           name: "image",
           display: {
@@ -398,11 +425,11 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
           },
           playbackRate: 1,
           details: {
-            src: "https://ik.imagekit.io/wombo/images/img1.jpg",
+            src: "https://ik.imagekit.io/wombo/images/img4.jpg",
             width: 1280,
-            height: 853,
+            height: 1920,
             opacity: 100,
-            transform: "scale(0.390464, 0.390464)",
+            transform: "scale(0.418949, 0.418949)",
             border: "none",
             borderRadius: 0,
             boxShadow: {
@@ -411,8 +438,8 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
               y: 0,
               blur: 0,
             },
-            top: "-218.933px",
-            left: "-75.8424px",
+            top: "-561.296px",
+            left: "157.636px",
             borderWidth: 0,
             borderColor: "#000000",
             blur: 0,
@@ -423,12 +450,12 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             visibility: "visible",
           },
           metadata: {
-            previewUrl: "https://ik.imagekit.io/wombo/images/img1.jpg?tr=w-190",
+            previewUrl: "https://ik.imagekit.io/wombo/images/img4.jpg?tr=w-190",
           },
           isMain: false,
         },
-        "oV7VkoMsPBBekjyD": {
-          id: "oV7VkoMsPBBekjyD",
+        "QCULubmkiPjXL9iK": {
+          id: "QCULubmkiPjXL9iK",
           name: "text",
           type: "text",
           display: {
@@ -436,7 +463,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             to: 5000,
           },
           details: {
-            text: "TEAST",
+            text: "Heading and some body",
             fontSize: 120,
             width: 600,
             fontUrl: "https://fonts.gstatic.com/s/roboto/v29/KFOlCnqEu92Fr1MmWUlvAx05IsDqlA.ttf",
@@ -475,6 +502,29 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             whiteSpace: "pre-wrap",
           },
           metadata: {},
+          isMain: false,
+        },
+        "pLbo2d7SWwCQqOTm": {
+          id: "pLbo2d7SWwCQqOTm",
+          name: "Dawn of change",
+          type: "audio",
+          display: {
+            from: 0,
+            to: 23870.113,
+          },
+          trim: {
+            from: 0,
+            to: 23870.112999999998,
+          },
+          playbackRate: 1,
+          details: {
+            src: "https://cdn.designcombo.dev/audio/Dawn%20of%20change.mp3",
+            volume: 1,
+          },
+          metadata: {
+            author: "Roman Senyk",
+          },
+          duration: 117242.833,
           isMain: false,
         },
       },
@@ -547,7 +597,23 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
         emitEvent(ADD_VIDEO, { payload: base, options: { resourceId: "main", scaleMode: "fit" } });
       } else if (item.type === "audio") {
         console.log('Adding audio:', itemId);
-        emitEvent(ADD_AUDIO, { payload: base });
+        console.log('Audio payload:', base);
+        
+        // Audio items need specific properties to work properly
+        const audioPayload = {
+          id: item.id,
+          type: item.type,
+          name: item.name,
+          display: item.display,
+          trim: item.trim,
+          playbackRate: item.playbackRate,
+          duration: item.duration,
+          details: item.details,
+          metadata: item.metadata,
+        };
+        
+        console.log('Structured audio payload:', audioPayload);
+        emitEvent(ADD_AUDIO, { payload: audioPayload, options: {} });
       } else if (item.type === "image") {
         console.log('Adding image:', itemId);
         emitEvent(ADD_IMAGE, { payload: base, options: { resourceId: "image", scaleMode: "fit" } });
@@ -589,6 +655,10 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       console.log('Final trackItemIds:', finalState.trackItemIds);
       console.log('Final trackItemsMap keys:', Object.keys(finalState.trackItemsMap));
       console.log('Final tracks:', finalState.tracks);
+      
+      // Debug: Check specifically for audio items
+      const audioItems = Object.values(finalState.trackItemsMap).filter(item => item.type === 'audio');
+      console.log('Audio items in final state:', audioItems);
     }, 500);
   };
 
