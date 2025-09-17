@@ -17,13 +17,15 @@ import { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
 import { MenuIcon, ShareIcon, Upload, ProportionsIcon } from "lucide-react";
 import StateManager from "@designcombo/state";
-import { dispatch } from "@designcombo/events";
+import { dispatch as emitEvent } from "@designcombo/events";
 import { HISTORY_UNDO, HISTORY_REDO, DESIGN_RESIZE } from "@designcombo/state";
 import useLayoutStore from "./store/use-layout-store";
 import { useDownloadState } from "./store/use-download-state";
 import { generateId } from "@designcombo/timeline";
 import { IDesign } from "@designcombo/types";
 import useStore from "./store/use-store";
+import { dispatch } from "@designcombo/events";
+import { ADD_AUDIO, ADD_IMAGE, ADD_TEXT, ADD_VIDEO } from "@designcombo/state";
 
 export default function Navbar({
   user,
@@ -368,25 +370,29 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       scroll: { left: 0, top: 0 },
     });
 
-    // 2) Also hydrate the timeline StateManager (timeline canvas reads from this)
-    try {
-      (stateManager as any).setState?.({
-        size: payload.size,
-        fps: payload.fps,
-        duration: payload.duration,
-        background: payload.background,
-        scale: payload.scale,
-        tracks: payload.tracks as any,
-        trackItemIds: payload.trackItemIds as any,
-        trackItemsMap: payload.trackItemsMap as any,
-        transitionIds: payload.transitionIds as any,
-        transitionsMap: payload.transitionsMap as any,
-        structure: payload.structure as any,
-        activeIds: payload.activeIds as any,
-      });
-    } catch (e) {
-      console.warn("StateManager.setState is unavailable; timeline may not update.", e);
-    }
+    // 2) Also add items through the event API so CanvasTimeline reflects them
+    Object.values(payload.trackItemsMap as any).forEach((item: any) => {
+      const base = {
+        id: item.id,
+        details: item.details,
+        metadata: item.metadata,
+        trim: item.trim,
+        display: item.display,
+        playbackRate: item.playbackRate,
+        duration: item.duration,
+        name: item.name,
+      } as any;
+
+      if (item.type === "video") {
+        emitEvent(ADD_VIDEO, { payload: base, options: { resourceId: "main", scaleMode: "fit" } });
+      } else if (item.type === "audio") {
+        emitEvent(ADD_AUDIO, { payload: base });
+      } else if (item.type === "image") {
+        emitEvent(ADD_IMAGE, { payload: base, options: { resourceId: "image", scaleMode: "fit" } });
+      } else if (item.type === "text") {
+        emitEvent(ADD_TEXT, { payload: base });
+      }
+    });
   };
 
   return (
