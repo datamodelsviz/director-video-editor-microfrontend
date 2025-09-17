@@ -253,7 +253,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
 
   const handleLoad = async () => {
     const payload = {
-      id: "a3Q7u4DdtFqVGPE",
+      id: "BJhgKLUdA6Z36k6T",
       size: {
         width: 1080,
         height: 1920,
@@ -261,7 +261,34 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       fps: 30,
       tracks: [
         {
-          id: "0tAbxnoV-DIXm_n6ICoAW",
+          id: "AMLP4LsUeVB7Swcr_KzGA",
+          accepts: [
+            "text",
+            "image",
+            "video",
+            "audio",
+            "composition",
+            "caption",
+            "template",
+            "customTrack",
+            "customTrack2",
+            "illustration",
+            "custom",
+            "main",
+            "shape",
+            "linealAudioBars",
+            "radialAudioBars",
+            "progressFrame",
+            "progressBar",
+            "rect",
+          ],
+          type: "text",
+          items: ["oV7VkoMsPBBekjyD"],
+          magnetic: false,
+          static: false,
+        },
+        {
+          id: "jtB8ovabVN3wcCrUYOcZx",
           accepts: [
             "text",
             "image",
@@ -283,12 +310,12 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             "rect",
           ],
           type: "image",
-          items: ["PuUQMQQl8JoVGWw0"],
+          items: ["jgE3gn55tJrrYDHv"],
           magnetic: false,
           static: false,
         },
         {
-          id: "BTFRIcmyWuA2gBn8EcOek",
+          id: "PJNBPPp5t5t5PD7CE4RRf",
           accepts: [
             "text",
             "image",
@@ -310,15 +337,15 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             "rect",
           ],
           type: "video",
-          items: ["ZKzuE1OgdnZroG4G"],
+          items: ["J6Or4cALgSDCJDnB"],
           magnetic: false,
           static: false,
         },
       ],
-      trackItemIds: ["ZKzuE1OgdnZroG4G", "PuUQMQQl8JoVGWw0"],
+      trackItemIds: ["J6Or4cALgSDCJDnB", "jgE3gn55tJrrYDHv", "oV7VkoMsPBBekjyD"],
       trackItemsMap: {
-        "ZKzuE1OgdnZroG4G": {
-          id: "ZKzuE1OgdnZroG4G",
+        "J6Or4cALgSDCJDnB": {
+          id: "J6Or4cALgSDCJDnB",
           details: {
             width: 360,
             height: 640,
@@ -361,21 +388,21 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
           duration: 23870.113,
           isMain: false,
         },
-        "PuUQMQQl8JoVGWw0": {
-          id: "PuUQMQQl8JoVGWw0",
+        "jgE3gn55tJrrYDHv": {
+          id: "jgE3gn55tJrrYDHv",
           type: "image",
           name: "image",
           display: {
-            from: 22234.04255319149,
-            to: 27234.04255319149,
+            from: 0,
+            to: 5000,
           },
           playbackRate: 1,
           details: {
-            src: "https://ik.imagekit.io/wombo/images/img2.jpg",
-            width: 853,
-            height: 1280,
+            src: "https://ik.imagekit.io/wombo/images/img1.jpg",
+            width: 1280,
+            height: 853,
             opacity: 100,
-            transform: "scale(0.657488, 0.657488)",
+            transform: "scale(0.390464, 0.390464)",
             border: "none",
             borderRadius: 0,
             boxShadow: {
@@ -384,8 +411,8 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
               y: 0,
               blur: 0,
             },
-            top: 703.557,
-            left: -146.076,
+            top: "-218.933px",
+            left: "-75.8424px",
             borderWidth: 0,
             borderColor: "#000000",
             blur: 0,
@@ -396,8 +423,58 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             visibility: "visible",
           },
           metadata: {
-            previewUrl: "https://ik.imagekit.io/wombo/images/img2.jpg?tr=w-190",
+            previewUrl: "https://ik.imagekit.io/wombo/images/img1.jpg?tr=w-190",
           },
+          isMain: false,
+        },
+        "oV7VkoMsPBBekjyD": {
+          id: "oV7VkoMsPBBekjyD",
+          name: "text",
+          type: "text",
+          display: {
+            from: 0,
+            to: 5000,
+          },
+          details: {
+            text: "TEAST",
+            fontSize: 120,
+            width: 600,
+            fontUrl: "https://fonts.gstatic.com/s/roboto/v29/KFOlCnqEu92Fr1MmWUlvAx05IsDqlA.ttf",
+            fontFamily: "Roboto-Bold",
+            color: "#ffffff",
+            wordWrap: "break-word",
+            textAlign: "center",
+            borderWidth: 0,
+            borderColor: "#000000",
+            boxShadow: {
+              color: "#ffffff",
+              x: 0,
+              y: 0,
+              blur: 0,
+            },
+            fontWeight: "normal",
+            fontStyle: "normal",
+            textDecoration: "none",
+            lineHeight: "normal",
+            letterSpacing: "normal",
+            wordSpacing: "normal",
+            backgroundColor: "transparent",
+            border: "none",
+            textShadow: "none",
+            opacity: 100,
+            wordBreak: "normal",
+            WebkitTextStrokeColor: "#ffffff",
+            WebkitTextStrokeWidth: "0px",
+            top: "748.5px",
+            left: "240px",
+            textTransform: "none",
+            transform: "none",
+            skewX: 0,
+            skewY: 0,
+            height: 423,
+            whiteSpace: "pre-wrap",
+          },
+          metadata: {},
           isMain: false,
         },
       },
@@ -409,7 +486,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
         zoom: 0.0033333333333333335,
         segments: 5,
       },
-      duration: 27234.04255319149,
+      duration: 23870.113,
       activeIds: [],
       structure: [],
       background: {
@@ -455,6 +532,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       
       const base = {
         id: item.id,
+        type: item.type,
         details: item.details,
         metadata: item.metadata,
         trim: item.trim,
@@ -475,7 +553,20 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
         emitEvent(ADD_IMAGE, { payload: base, options: { resourceId: "image", scaleMode: "fit" } });
       } else if (item.type === "text") {
         console.log('Adding text:', itemId);
-        emitEvent(ADD_TEXT, { payload: base });
+        console.log('Text payload:', base);
+        
+        // Try using the ADD_TEXT event with a simpler payload structure
+        // that matches what the system expects
+        const textPayload = {
+          id: item.id,
+          type: item.type,
+          display: item.display,
+          details: item.details,
+          name: item.name,
+        };
+        
+        console.log('Simplified text payload:', textPayload);
+        emitEvent(ADD_TEXT, { payload: textPayload, options: {} });
       }
       
       // Add a small delay between items to prevent conflicts
@@ -492,6 +583,12 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       if (canvas) {
         canvas.dispatchEvent(new Event('resize'));
       }
+      
+      // Debug: Check the final state
+      const finalState = useStore.getState();
+      console.log('Final trackItemIds:', finalState.trackItemIds);
+      console.log('Final trackItemsMap keys:', Object.keys(finalState.trackItemsMap));
+      console.log('Final tracks:', finalState.tracks);
     }, 500);
   };
 
