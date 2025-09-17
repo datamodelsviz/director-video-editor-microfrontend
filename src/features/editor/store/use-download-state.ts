@@ -23,8 +23,7 @@ function htmlToPlainTextWithNewlines(html?: string): string {
     text = text.replace(/\u00A0/g, " "); // decode &nbsp;
     // Normalize CRLF to LF; preserve all consecutive newlines as-is
     text = text.replace(/\r\n/g, "\n");
-    // Trim but do not collapse internal newlines
-    text = text.replace(/^\s+|\s+$/g, "");
+    // Do not trim; preserve leading/trailing newlines and spaces exactly
     return text;
   } catch {
     return html;
