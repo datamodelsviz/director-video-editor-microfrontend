@@ -19,7 +19,6 @@ import { MenuIcon, ShareIcon, Upload, ProportionsIcon } from "lucide-react";
 import StateManager from "@designcombo/state";
 import { dispatch } from "@designcombo/events";
 import { HISTORY_UNDO, HISTORY_REDO, DESIGN_RESIZE } from "@designcombo/state";
-import DownloadProgressModal from "./download-progress-modal";
 import useLayoutStore from "./store/use-layout-store";
 import { useDownloadState } from "./store/use-download-state";
 import { generateId } from "@designcombo/timeline";
@@ -80,7 +79,7 @@ export default function Navbar({
       }}
       className="bg-sidebar pointer-events-none flex h-[58px] items-center px-2"
     >
-      <DownloadProgressModal />
+
 
       <div className="flex items-center gap-2">
         {showMenuButton && (
