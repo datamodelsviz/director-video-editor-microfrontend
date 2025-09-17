@@ -147,7 +147,7 @@ export default function Navbar({
             </Button>
           )}
           <ExportButton stateManager={stateManager} />
-          <LoadButton />
+          <LoadButton stateManager={stateManager} />
           
           {showDiscordButton && (
             <Button
@@ -246,7 +246,7 @@ const ExportButton = ({ stateManager }: { stateManager: StateManager }) => {
   );
 };
 
-const LoadButton = () => {
+const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
   const { setState } = useStore();
 
   const handleLoad = () => {
@@ -351,7 +351,7 @@ const LoadButton = () => {
       },
     } as const;
 
-    // Minimal mapping to editor store
+    // 1) Update Zustand store (player/scene rely on this)
     setState({
       size: payload.size,
       fps: payload.fps,
@@ -367,6 +367,26 @@ const LoadButton = () => {
       activeIds: payload.activeIds as any,
       scroll: { left: 0, top: 0 },
     });
+
+    // 2) Also hydrate the timeline StateManager (timeline canvas reads from this)
+    try {
+      (stateManager as any).setState?.({
+        size: payload.size,
+        fps: payload.fps,
+        duration: payload.duration,
+        background: payload.background,
+        scale: payload.scale,
+        tracks: payload.tracks as any,
+        trackItemIds: payload.trackItemIds as any,
+        trackItemsMap: payload.trackItemsMap as any,
+        transitionIds: payload.transitionIds as any,
+        transitionsMap: payload.transitionsMap as any,
+        structure: payload.structure as any,
+        activeIds: payload.activeIds as any,
+      });
+    } catch (e) {
+      console.warn("StateManager.setState is unavailable; timeline may not update.", e);
+    }
   };
 
   return (
