@@ -4,7 +4,7 @@ import { ADD_TEXT } from "@designcombo/state";
 import { dispatch } from "@designcombo/events";
 import { useIsDraggingOverTimeline } from "../hooks/is-dragging-over-timeline";
 import Draggable from "@/components/shared/draggable";
-import { TEXT_ADD_PAYLOAD } from "../constants/payload";
+import { createTextAddPayload } from "../constants/payload";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -21,10 +21,12 @@ export const VoiceOver = () => {
 
   const handleAddText = () => {
     dispatch(ADD_TEXT, {
-      payload: TEXT_ADD_PAYLOAD,
+      payload: createTextAddPayload(),
       options: {},
     });
   };
+
+  const draggableData = createTextAddPayload();
 
   const createVoiceOver = async () => {
     if (voiceId && textValue) {
