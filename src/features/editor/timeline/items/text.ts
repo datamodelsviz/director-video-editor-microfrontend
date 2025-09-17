@@ -48,14 +48,14 @@ class Text extends Resizable {
 		ctx.translate(-this.width / 2, -this.height / 2);
 		ctx.translate(0, 8);
 		ctx.font = `400 12px ${SECONDARY_FONT}`;
-		ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+		ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
 		ctx.textAlign = "left";
 		ctx.clip();
 		ctx.fillText(label, 36, 12);
 
 		ctx.translate(8, 1);
 
-		ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+		ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
 		ctx.fill(textPath);
 		ctx.restore();
 	}
