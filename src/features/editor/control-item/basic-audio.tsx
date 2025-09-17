@@ -17,12 +17,13 @@ const BasicAudio = ({
 	const showAll = !type;
 	const [properties, setProperties] = useState(trackItem);
 
-	const handleChangeVolume = (v: number) => {
+    const handleChangeVolume = (v: number) => {
 		dispatch(EDIT_OBJECT, {
 			payload: {
 				[trackItem.id]: {
 					details: {
-						volume: v,
+                        // store as 0–1 in payload
+                        volume: v / 100,
 					},
 				},
 			},
@@ -33,7 +34,8 @@ const BasicAudio = ({
 				...prev,
 				details: {
 					...prev.details,
-					volume: v,
+                    // keep UI responsive: store 0–1 locally as well
+                    volume: v / 100,
 				},
 			};
 		});
@@ -69,10 +71,11 @@ const BasicAudio = ({
 		{
 			key: "volume",
 			component: (
-				<Volume
-					onChange={(v: number) => handleChangeVolume(v)}
-					value={properties.details.volume ?? 100}
-				/>
+                <Volume
+                    onChange={(v: number) => handleChangeVolume(v)}
+                    // UI shows 0–100; payload/state keeps 0–1
+                    value={Math.round(((properties.details.volume ?? 1) * 100))}
+                />
 			),
 		},
 	];

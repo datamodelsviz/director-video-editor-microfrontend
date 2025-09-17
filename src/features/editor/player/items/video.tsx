@@ -27,7 +27,8 @@ export const Video = ({
 				endAt={(item.trim?.to! / 1000) * fps || 1 / fps}
 				playbackRate={playbackRate}
 				src={details.src}
-				volume={details.volume || 0 / 100}
+				// details.volume is 0–1
+				volume={details.volume ?? 1}
 			/>
 		</div>
 	);
