@@ -93,24 +93,64 @@ export default function Navbar({
   };
 
   const handleLoad = async (composition: any) => {
-    // Simply load the saved data directly - it's already in the correct format
+    // Load the saved data and validate timing values
     const payload = composition.design;
+    console.log('Loading composition payload:', payload);
     
-    // Update Zustand store with the saved data
+    // Validate and fix timing values in trackItemsMap
+    const validatedTrackItemsMap = { ...payload.trackItemsMap };
+    Object.keys(validatedTrackItemsMap).forEach(itemId => {
+      const item = validatedTrackItemsMap[itemId];
+      console.log(`Validating item ${itemId}:`, item);
+      
+      if (item && item.display) {
+        // Ensure display.from and display.to are valid numbers
+        if (typeof item.display.from !== 'number' || isNaN(item.display.from)) {
+          console.log(`Fixing display.from for ${itemId}: ${item.display.from} -> 0`);
+          item.display.from = 0;
+        }
+        if (typeof item.display.to !== 'number' || isNaN(item.display.to)) {
+          console.log(`Fixing display.to for ${itemId}: ${item.display.to} -> ${item.display.from + 5000}`);
+          item.display.to = item.display.from + 5000; // Default 5 seconds
+        }
+        
+        // Ensure trim values are valid if they exist
+        if (item.trim) {
+          if (typeof item.trim.from !== 'number' || isNaN(item.trim.from)) {
+            console.log(`Fixing trim.from for ${itemId}: ${item.trim.from} -> 0`);
+            item.trim.from = 0;
+          }
+          if (typeof item.trim.to !== 'number' || isNaN(item.trim.to)) {
+            console.log(`Fixing trim.to for ${itemId}: ${item.trim.to} -> ${item.duration || 5000}`);
+            item.trim.to = item.duration || 5000;
+          }
+        }
+        
+        // Ensure duration is valid
+        if (typeof item.duration !== 'number' || isNaN(item.duration)) {
+          console.log(`Fixing duration for ${itemId}: ${item.duration} -> ${item.display.to - item.display.from}`);
+          item.duration = item.display.to - item.display.from;
+        }
+      }
+    });
+    
+    console.log('Validated trackItemsMap:', validatedTrackItemsMap);
+    
+    // Update Zustand store with the validated data
     const { setState } = useStore.getState();
     setState({
-      size: payload.size,
-      fps: payload.fps,
-      duration: payload.duration,
-      background: payload.background,
-      scale: payload.scale,
-      tracks: payload.tracks as any,
-      trackItemIds: payload.trackItemIds as any,
-      trackItemsMap: payload.trackItemsMap as any,
-      transitionIds: payload.transitionIds as any,
-      transitionsMap: payload.transitionsMap as any,
-      structure: payload.structure as any,
-      activeIds: payload.activeIds as any,
+      size: payload.size || { width: 1080, height: 1920 },
+      fps: payload.fps || 30,
+      duration: payload.duration || 5000,
+      background: payload.background || { type: 'color', value: 'transparent' },
+      scale: payload.scale || { index: 7, unit: 300, zoom: 0.0033333333333333335, segments: 5 },
+      tracks: payload.tracks || [],
+      trackItemIds: payload.trackItemIds || [],
+      trackItemsMap: validatedTrackItemsMap,
+      transitionIds: payload.transitionIds || [],
+      transitionsMap: payload.transitionsMap || {},
+      structure: payload.structure || [],
+      activeIds: payload.activeIds || [],
       scroll: { left: 0, top: 0 },
     });
 
