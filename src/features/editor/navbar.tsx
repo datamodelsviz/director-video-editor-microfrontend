@@ -23,6 +23,7 @@ import useLayoutStore from "./store/use-layout-store";
 import { useDownloadState } from "./store/use-download-state";
 import { generateId } from "@designcombo/timeline";
 import { IDesign } from "@designcombo/types";
+import useStore from "./store/use-store";
 
 export default function Navbar({
   user,
@@ -146,6 +147,7 @@ export default function Navbar({
             </Button>
           )}
           <ExportButton stateManager={stateManager} />
+          <LoadButton />
           
           {showDiscordButton && (
             <Button
@@ -240,6 +242,140 @@ const ExportButton = ({ stateManager }: { stateManager: StateManager }) => {
           <Upload width={18} /> RENDER
         </>
       )}
+    </Button>
+  );
+};
+
+const LoadButton = () => {
+  const { setState } = useStore();
+
+  const handleLoad = () => {
+    const payload = {
+      id: "Uk7lxLDnhIxPzh",
+      size: {
+        width: 1080,
+        height: 1920,
+      },
+      fps: 30,
+      tracks: [
+        {
+          id: "Rgnly8KFjDjtV8Ff_cIVB",
+          accepts: [
+            "text",
+            "image",
+            "video",
+            "audio",
+            "composition",
+            "caption",
+            "template",
+            "customTrack",
+            "customTrack2",
+            "illustration",
+            "custom",
+            "main",
+            "shape",
+            "linealAudioBars",
+            "radialAudioBars",
+            "progressFrame",
+            "progressBar",
+            "rect",
+          ],
+          type: "video",
+          items: ["K27bTuyxlmMNtjn"],
+          magnetic: false,
+          static: false,
+        },
+      ],
+      trackItemIds: ["K27bTuyxlmMNtjn"],
+      trackItemsMap: {
+        K27bTuyxlmMNtjn: {
+          id: "K27bTuyxlmMNtjn",
+          details: {
+            width: 360,
+            height: 640,
+            opacity: 100,
+            src: "https://cdn.designcombo.dev/videos/Happiness%20shouldn%E2%80%99t%20depend.mp4",
+            volume: 1,
+            borderRadius: 0,
+            borderWidth: 0,
+            borderColor: "#000000",
+            boxShadow: {
+              color: "#000000",
+              x: 0,
+              y: 0,
+              blur: 0,
+            },
+            top: "640px",
+            left: "360px",
+            transform: "scale(3)",
+            blur: 0,
+            brightness: 100,
+            flipX: false,
+            flipY: false,
+            rotate: "0deg",
+            visibility: "visible",
+          },
+          metadata: {
+            previewUrl:
+              "https://cdn.designcombo.dev/thumbnails/Happiness-shouldnt-depend.png",
+          },
+          trim: {
+            from: 0,
+            to: 23870.113,
+          },
+          type: "video",
+          name: "video",
+          playbackRate: 1,
+          display: {
+            from: 0,
+            to: 23870.113,
+          },
+          duration: 23870.113,
+          isMain: false,
+        },
+      },
+      transitionIds: [],
+      transitionsMap: {},
+      scale: {
+        index: 7,
+        unit: 300,
+        zoom: 0.0033333333333333335,
+        segments: 5,
+      },
+      duration: 23870.113,
+      activeIds: [],
+      structure: [],
+      background: {
+        type: "color",
+        value: "transparent",
+      },
+    } as const;
+
+    // Minimal mapping to editor store
+    setState({
+      size: payload.size,
+      fps: payload.fps,
+      duration: payload.duration,
+      background: payload.background,
+      scale: payload.scale,
+      tracks: payload.tracks as any,
+      trackItemIds: payload.trackItemIds as any,
+      trackItemsMap: payload.trackItemsMap as any,
+      transitionIds: payload.transitionIds as any,
+      transitionsMap: payload.transitionsMap as any,
+      structure: payload.structure as any,
+      activeIds: payload.activeIds as any,
+      scroll: { left: 0, top: 0 },
+    });
+  };
+
+  return (
+    <Button
+      onClick={handleLoad}
+      className="flex h-8 gap-1 border border-border"
+      variant="outline"
+    >
+      Load
     </Button>
   );
 };
