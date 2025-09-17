@@ -3,7 +3,7 @@ import { ADD_TEXT } from "@designcombo/state";
 import { dispatch } from "@designcombo/events";
 import { useIsDraggingOverTimeline } from "../hooks/is-dragging-over-timeline";
 import Draggable from "@/components/shared/draggable";
-import { TEXT_ADD_PAYLOAD } from "../constants/payload";
+import { createTextAddPayload } from "../constants/payload";
 import { cn } from "@/lib/utils";
 
 export const Texts = () => {
@@ -11,10 +11,12 @@ export const Texts = () => {
 
   const handleAddText = () => {
     dispatch(ADD_TEXT, {
-      payload: TEXT_ADD_PAYLOAD,
+      payload: createTextAddPayload(),
       options: {},
     });
   };
+
+  const draggableData = createTextAddPayload();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -23,7 +25,7 @@ export const Texts = () => {
       </div>
       <div className="flex flex-col gap-2 px-4">
         <Draggable
-          data={TEXT_ADD_PAYLOAD}
+          data={draggableData}
           renderCustomPreview={
             <Button variant="secondary" className="w-60">
               Add Text
