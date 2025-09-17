@@ -15,7 +15,7 @@ class Text extends Resizable {
 
 	constructor(props: TextProps) {
 		super(props);
-		this.fill = "rgba(249, 115, 22, 0.6)"; // Sweet spot: orange-500 with 60% opacity
+		this.fill = "rgba(255, 255, 255, 0.6)"; // white with 60% opacity
 		this.id = props.id;
 		this.borderColor = "transparent";
 		this.stroke = "transparent";

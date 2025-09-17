@@ -23,7 +23,7 @@ export default function MenuList() {
             className={cn(
               "h-9 w-9 rounded-lg transition-all duration-300 ease-out hover:scale-110 active:scale-95",
               showMenuItem && activeMenuItem === "videos"
-                ? "bg-orange-500 text-white shadow-md shadow-orange-500/25 scale-105"
+                ? "bg-white text-black shadow-md shadow-white/25 scale-105"
                 : "text-zinc-300 hover:text-white hover:bg-zinc-700/40 hover:shadow-md",
             )}
             variant={"ghost"}
@@ -37,7 +37,7 @@ export default function MenuList() {
             className={cn(
               "h-9 w-9 rounded-lg transition-all duration-300 ease-out hover:scale-110 active:scale-95",
               showMenuItem && activeMenuItem === "images"
-                ? "bg-orange-500 text-white shadow-md shadow-orange-500/25 scale-105"
+                ? "bg-white text-black shadow-md shadow-white/25 scale-105"
                 : "text-zinc-300 hover:text-white hover:bg-zinc-700/40 hover:shadow-md",
             )}
             variant={"ghost"}
@@ -51,7 +51,7 @@ export default function MenuList() {
             className={cn(
               "h-9 w-9 rounded-lg transition-all duration-300 ease-out hover:scale-110 active:scale-95",
               showMenuItem && activeMenuItem === "audios"
-                ? "bg-orange-500 text-white shadow-md shadow-orange-500/25 scale-105"
+                ? "bg-white text-black shadow-md shadow-white/25 scale-105"
                 : "text-zinc-300 hover:text-white hover:bg-zinc-700/40 hover:shadow-md",
             )}
             variant={"ghost"}
@@ -65,7 +65,7 @@ export default function MenuList() {
             className={cn(
               "h-9 w-9 rounded-lg transition-all duration-300 ease-out hover:scale-110 active:scale-95",
               showMenuItem && activeMenuItem === "texts"
-                ? "bg-orange-500 text-white shadow-md shadow-orange-500/25 scale-105"
+                ? "bg-white text-black shadow-md shadow-white/25 scale-105"
                 : "text-zinc-300 hover:text-white hover:bg-zinc-700/40 hover:shadow-md",
             )}
             variant={"ghost"}

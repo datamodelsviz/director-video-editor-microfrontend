@@ -213,21 +213,21 @@ const ExportButton = ({ stateManager }: { stateManager: StateManager }) => {
       style={{
         backgroundColor: exporting 
           ? 'rgba(156, 163, 175, 0.8)' // gray-400/80 when disabled
-          : 'rgba(249, 115, 22, 0.8)', // orange-500/80
-        color: 'white',
+          : 'rgba(255, 255, 255, 0.9)', // white/90
+        color: exporting ? 'white' : 'black',
         borderColor: exporting 
           ? 'rgb(156, 163, 175)' // gray-400 when disabled
-          : 'rgb(249, 115, 22)',
+          : 'rgb(255, 255, 255)',
         cursor: exporting ? 'not-allowed' : 'pointer'
       }}
       onMouseEnter={(e) => {
         if (!exporting) {
-          e.currentTarget.style.backgroundColor = 'rgb(249, 115, 22)'; // orange-500
+          e.currentTarget.style.backgroundColor = 'rgb(255, 255, 255)'; // white
         }
       }}
       onMouseLeave={(e) => {
         if (!exporting) {
-          e.currentTarget.style.backgroundColor = 'rgba(249, 115, 22, 0.8)'; // orange-500/80
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'; // white/90
         }
       }}
     >

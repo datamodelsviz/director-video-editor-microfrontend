@@ -200,7 +200,7 @@ const Header = () => {
 								}}
 								variant={"ghost"}
 								size={"icon"}
-								className="text-orange-500 hover:text-orange-600 hover:bg-orange-500/10"
+                                className="text-white hover:text-white hover:bg-white/10"
 							>
 								{playing ? (
 									<IconPlayerPauseFilled size={14} />

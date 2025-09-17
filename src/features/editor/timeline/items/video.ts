@@ -90,7 +90,7 @@ class Video extends Trimmable {
 		this.trim = props.trim;
 		this.duration = props.duration;
 		this.prevDuration = props.duration;
-		this.fill = "rgba(194, 65, 12, 0.5)"; // Sweet spot: orange-700 with 50% opacity
+		this.fill = "rgba(255, 255, 255, 0.5)"; // white with 50% opacity
 		this.borderOpacityWhenMoving = 1;
 		this.metadata = props.metadata;
 

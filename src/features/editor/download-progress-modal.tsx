@@ -45,17 +45,17 @@ const DownloadProgressModal = () => {
         <DialogTitle className="hidden" />
         <DialogDescription className="hidden" />
 
-        <div className="flex h-16 items-center border-b px-4 font-medium text-orange-600">
+        <div className="flex h-16 items-center border-b px-4 font-medium text-white">
           {isJobQueued ? 'Render Job Queued' : 'Download'}
         </div>
         
                 {isJobQueued ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
             <div className="flex flex-col items-center space-y-4">
-              <div className="font-semibold text-orange-500">
+              <div className="font-semibold text-white">
                 <CircleCheckIcon className="h-20 w-20" />
               </div>
-              <div className="font-bold text-2xl text-orange-600">Render Job Queued!</div>
+              <div className="font-bold text-2xl text-white">Render Job Queued!</div>
               <div className="text-muted-foreground max-w-sm text-center text-lg">
                 {output.renderInfo?.message || 'Your video render job has been successfully queued.'}
               </div>
@@ -66,15 +66,15 @@ const DownloadProgressModal = () => {
             <div className="flex gap-3">
               <Button 
                 onClick={handleVisitRendersPage} 
-                className="bg-orange-500 hover:bg-orange-600 text-white border-0 px-8 py-3 text-lg font-semibold"
+                className="bg-white hover:bg-white text-black border-0 px-8 py-3 text-lg font-semibold"
                 style={{
-                  backgroundColor: 'rgba(249, 115, 22, 0.9)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgb(249, 115, 22)';
+                  e.currentTarget.style.backgroundColor = 'rgb(255, 255, 255)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(249, 115, 22, 0.9)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
                 }}
               >
                 Visit Renders Page

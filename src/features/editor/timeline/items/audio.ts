@@ -46,7 +46,7 @@ class Audio extends Trimmable {
 		this.display = props.display;
 		this.trim = props.trim;
 		this.duration = props.duration;
-		this.fill = "rgba(234, 88, 12, 0.55)"; // Sweet spot: orange-600 with 55% opacity
+		this.fill = "rgba(255, 255, 255, 0.55)"; // white with 55% opacity
 		this.src = props.src;
 		this.objectCaching = false;
 		this.initOffscreenCanvas();
