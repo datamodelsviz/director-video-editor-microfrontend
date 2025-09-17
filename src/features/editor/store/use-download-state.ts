@@ -77,6 +77,30 @@ function serializeDesign(design: IDesign): IDesign {
         if (originalItem.playbackRate !== undefined) {
           target.playbackRate = originalItem.playbackRate;
         }
+
+        // Normalize media volumes to 0–1 (UI is 0–100)
+        if ((originalItem.type === "audio" || originalItem.type === "video") && originalItem.details) {
+          const originalDetails = originalItem.details || {};
+          const targetDetails = (target as any).details || {};
+
+          let vol = originalDetails.volume;
+          if (vol === undefined || vol === null) {
+            vol = 1; // default 1
+          }
+          // If someone stored 100-scale by mistake, convert to 0–1.
+          if (typeof vol === "number" && vol > 1) {
+            vol = vol / 100;
+          }
+          // Clamp to [0,1]
+          if (typeof vol === "number") {
+            vol = Math.max(0, Math.min(1, vol));
+          }
+
+          (target as any).details = {
+            ...targetDetails,
+            volume: vol,
+          };
+        }
       }
 
       clonedItems[itemId] = target;
