@@ -25,12 +25,13 @@ const BasicVideo = ({
 	const showAll = !type;
 	const [properties, setProperties] = useState(trackItem);
 	const { setCropTarget } = useLayoutStore();
-	const handleChangeVolume = (v: number) => {
+    const handleChangeVolume = (v: number) => {
 		dispatch(EDIT_OBJECT, {
 			payload: {
 				[trackItem.id]: {
 					details: {
-						volume: v,
+                        // store as 0–1 in payload
+                        volume: v / 100,
 					},
 				},
 			},
@@ -39,9 +40,10 @@ const BasicVideo = ({
 		setProperties((prev) => {
 			return {
 				...prev,
-				details: {
+                details: {
 					...prev.details,
-					volume: v,
+                    // keep local value 0–1
+                    volume: v / 100,
 				},
 			};
 		});
@@ -198,10 +200,10 @@ const BasicVideo = ({
 						Basic
 					</Label>
 					<AspectRatio />
-					<Volume
-						onChange={(v: number) => handleChangeVolume(v)}
-						value={properties.details.volume ?? 100}
-					/>
+                    <Volume
+                        onChange={(v: number) => handleChangeVolume(v)}
+                        value={Math.round(((properties.details.volume ?? 1) * 100))}
+                    />
 					<Opacity
 						onChange={(v: number) => handleChangeOpacity(v)}
 						value={properties.details.opacity ?? 100}
