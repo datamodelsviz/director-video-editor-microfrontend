@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
-import { MenuIcon, ShareIcon, Upload, ProportionsIcon, Save } from "lucide-react";
+import { MenuIcon, ShareIcon, Upload, ProportionsIcon, Save, Plus } from "lucide-react";
 import StateManager from "@designcombo/state";
 import { dispatch as emitEvent } from "@designcombo/events";
 import { HISTORY_UNDO, HISTORY_REDO, DESIGN_RESIZE } from "@designcombo/state";
@@ -136,6 +136,22 @@ export default function Navbar({
     
     console.log('Validated trackItemsMap:', validatedTrackItemsMap);
     
+    // Update StateManager first
+    stateManager.updateState({
+      size: payload.size || { width: 1080, height: 1920 },
+      fps: payload.fps || 30,
+      duration: payload.duration || 5000,
+      background: payload.background || { type: 'color', value: 'transparent' },
+      scale: payload.scale || { index: 7, unit: 300, zoom: 0.0033333333333333335, segments: 5 },
+      tracks: payload.tracks || [],
+      trackItemIds: payload.trackItemIds || [],
+      trackItemsMap: validatedTrackItemsMap,
+      transitionIds: payload.transitionIds || [],
+      transitionsMap: payload.transitionsMap || {},
+      structure: payload.structure || [],
+      activeIds: payload.activeIds || [],
+    });
+    
     // Update Zustand store with the validated data
     const { setState } = useStore.getState();
     setState({
@@ -216,12 +232,64 @@ export default function Navbar({
     }, 200);
   };
 
+  const handleNewProject = () => {
+    // Reset project name
+    setProjectName('Untitled');
+    
+    // Clear current composition from store
+    const { setCurrentCompositionId, setCurrentCompositionName } = useCompositionStore.getState();
+    setCurrentCompositionId(null);
+    setCurrentCompositionName(null);
+    
+    // Clear StateManager state first
+    stateManager.updateState({
+      size: { width: 1080, height: 1920 },
+      fps: 30,
+      duration: 5000,
+      background: { type: 'color', value: 'transparent' },
+      scale: { index: 7, unit: 300, zoom: 0.0033333333333333335, segments: 5 },
+      tracks: [],
+      trackItemIds: [],
+      trackItemsMap: {},
+      transitionIds: [],
+      transitionsMap: {},
+      structure: [],
+      activeIds: [],
+    });
+    
+    // Reset the Zustand store to initial state
+    const { setState } = useStore.getState();
+    setState({
+      size: { width: 1080, height: 1920 },
+      fps: 30,
+      duration: 5000,
+      background: { type: 'color', value: 'transparent' },
+      scale: { index: 7, unit: 300, zoom: 0.0033333333333333335, segments: 5 },
+      tracks: [],
+      trackItemIds: [],
+      trackItemsMap: {},
+      transitionIds: [],
+      transitionsMap: {},
+      structure: [],
+      activeIds: [],
+      scroll: { left: 0, top: 0 },
+    });
+    
+    // Force timeline refresh
+    setTimeout(() => {
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        canvas.dispatchEvent(new Event('resize'));
+      }
+    }, 200);
+  };
+
   return (
     <>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "320px 1fr",
+          gridTemplateColumns: "320px 1fr 320px",
         }}
         className="bg-sidebar pointer-events-none flex h-[58px] items-center px-2"
       >
@@ -281,6 +349,32 @@ export default function Navbar({
         </div> */}
       </div>
 
+      {/* Center section - Load Dropdown with Save and Plus buttons */}
+      <div className="flex h-14 items-center justify-center">
+        <div className="bg-sidebar pointer-events-auto flex h-12 items-center gap-2 rounded-md px-2.5">
+          <LoadDropdown onLoad={handleLoad} onNewProject={handleNewProject} />
+          <Button
+            onClick={handleNewProject}
+            className="flex h-8 w-8 items-center justify-center border border-border"
+            variant="outline"
+            size="icon"
+            title="New Project"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={() => setShowSaveModal(true)}
+            className="flex h-8 w-8 items-center justify-center border border-border"
+            variant="outline"
+            size="icon"
+            title="Save"
+          >
+            <Save className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Right section - Other buttons */}
       <div className="flex h-14 items-center justify-end gap-2">
         <div className="bg-sidebar pointer-events-auto flex h-12 items-center gap-2 rounded-md px-2.5">
           {showShareButton && (
@@ -291,14 +385,6 @@ export default function Navbar({
               <ShareIcon width={18} /> Share
             </Button>
           )}
-          <Button
-            onClick={() => setShowSaveModal(true)}
-            className="flex h-8 gap-1 border border-border"
-            variant="outline"
-          >
-            <Save width={18} /> Save
-          </Button>
-          <LoadDropdown onLoad={handleLoad} />
           <ExportButton stateManager={stateManager} />
           
           {showDiscordButton && (
