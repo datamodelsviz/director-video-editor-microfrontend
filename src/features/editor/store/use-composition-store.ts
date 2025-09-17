@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { compositionApi, Composition } from '../../services/compositionApi';
+import { compositionApi, Composition } from '../../../services/compositionApi';
 
 interface CompositionStore {
   // State
@@ -60,11 +60,11 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
     }
   },
 
-  // Save composition
+  // Save composition - save the exact render API payload
   saveComposition: async (name: string, data: any) => {
     set({ isLoading: true, error: null });
     try {
-      // Convert internal data structure to API format
+      // Save the exact data structure as-is (render API payload)
       const apiData = {
         name,
         description: `Composition saved on ${new Date().toLocaleDateString()}`,
@@ -75,21 +75,7 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
         is_public: false,
         category: 'general',
         tags: [],
-        design: {
-          id: data.id || `design-${Date.now()}`,
-          size: data.size || { width: 1080, height: 1920 },
-          fps: data.fps || 30,
-          tracks: data.tracks || [],
-          trackItemIds: data.trackItemIds || [],
-          trackItemsMap: data.trackItemsMap || {},
-          transitionIds: data.transitionIds || [],
-          transitionsMap: data.transitionsMap || {},
-          scale: data.scale || { index: 7, unit: 300, zoom: 0.0033333333333333335, segments: 5 },
-          duration: data.duration || 0,
-          activeIds: data.activeIds || [],
-          structure: data.structure || [],
-          background: data.background || { type: 'color', value: 'transparent' }
-        },
+        design: data, // Save the entire data object as-is
         options: {
           fps: data.fps || 30,
           size: data.size || { width: 1080, height: 1920 },
