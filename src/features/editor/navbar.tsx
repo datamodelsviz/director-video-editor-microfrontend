@@ -253,7 +253,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
 
   const handleLoad = async () => {
     const payload = {
-      id: "Uk7lxLDnhIxPzh",
+      id: "a3Q7u4DdtFqVGPE",
       size: {
         width: 1080,
         height: 1920,
@@ -261,7 +261,34 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       fps: 30,
       tracks: [
         {
-          id: "Rgnly8KFjDjtV8Ff_cIVB",
+          id: "0tAbxnoV-DIXm_n6ICoAW",
+          accepts: [
+            "text",
+            "image",
+            "video",
+            "audio",
+            "composition",
+            "caption",
+            "template",
+            "customTrack",
+            "customTrack2",
+            "illustration",
+            "custom",
+            "main",
+            "shape",
+            "linealAudioBars",
+            "radialAudioBars",
+            "progressFrame",
+            "progressBar",
+            "rect",
+          ],
+          type: "image",
+          items: ["PuUQMQQl8JoVGWw0"],
+          magnetic: false,
+          static: false,
+        },
+        {
+          id: "BTFRIcmyWuA2gBn8EcOek",
           accepts: [
             "text",
             "image",
@@ -283,15 +310,15 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             "rect",
           ],
           type: "video",
-          items: ["K27bTuyxlmMNtjn"],
+          items: ["ZKzuE1OgdnZroG4G"],
           magnetic: false,
           static: false,
         },
       ],
-      trackItemIds: ["K27bTuyxlmMNtjn"],
+      trackItemIds: ["ZKzuE1OgdnZroG4G", "PuUQMQQl8JoVGWw0"],
       trackItemsMap: {
-        K27bTuyxlmMNtjn: {
-          id: "K27bTuyxlmMNtjn",
+        "ZKzuE1OgdnZroG4G": {
+          id: "ZKzuE1OgdnZroG4G",
           details: {
             width: 360,
             height: 640,
@@ -318,8 +345,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
             visibility: "visible",
           },
           metadata: {
-            previewUrl:
-              "https://cdn.designcombo.dev/thumbnails/Happiness-shouldnt-depend.png",
+            previewUrl: "https://cdn.designcombo.dev/thumbnails/Happiness-shouldnt-depend.png",
           },
           trim: {
             from: 0,
@@ -335,6 +361,45 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
           duration: 23870.113,
           isMain: false,
         },
+        "PuUQMQQl8JoVGWw0": {
+          id: "PuUQMQQl8JoVGWw0",
+          type: "image",
+          name: "image",
+          display: {
+            from: 22234.04255319149,
+            to: 27234.04255319149,
+          },
+          playbackRate: 1,
+          details: {
+            src: "https://ik.imagekit.io/wombo/images/img2.jpg",
+            width: 853,
+            height: 1280,
+            opacity: 100,
+            transform: "scale(0.657488, 0.657488)",
+            border: "none",
+            borderRadius: 0,
+            boxShadow: {
+              color: "#000000",
+              x: 0,
+              y: 0,
+              blur: 0,
+            },
+            top: 703.557,
+            left: -146.076,
+            borderWidth: 0,
+            borderColor: "#000000",
+            blur: 0,
+            brightness: 100,
+            flipX: false,
+            flipY: false,
+            rotate: "0deg",
+            visibility: "visible",
+          },
+          metadata: {
+            previewUrl: "https://ik.imagekit.io/wombo/images/img2.jpg?tr=w-190",
+          },
+          isMain: false,
+        },
       },
       transitionIds: [],
       transitionsMap: {},
@@ -344,7 +409,7 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
         zoom: 0.0033333333333333335,
         segments: 5,
       },
-      duration: 23870.113,
+      duration: 27234.04255319149,
       activeIds: [],
       structure: [],
       background: {
@@ -374,7 +439,20 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
     // Add a small delay to allow the store to update first
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    Object.values(payload.trackItemsMap as any).forEach((item: any) => {
+    // Process items in the order they appear in trackItemIds to maintain proper order
+    console.log('Track item IDs:', payload.trackItemIds);
+    console.log('Track items map keys:', Object.keys(payload.trackItemsMap));
+    
+    for (let i = 0; i < payload.trackItemIds.length; i++) {
+      const itemId = payload.trackItemIds[i];
+      const item = payload.trackItemsMap[itemId] as any;
+      if (!item) {
+        console.log('Item not found:', itemId);
+        continue;
+      }
+      
+      console.log('Processing item:', itemId, 'type:', item.type);
+      
       const base = {
         id: item.id,
         details: item.details,
@@ -387,15 +465,26 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
       } as any;
 
       if (item.type === "video") {
+        console.log('Adding video:', itemId);
         emitEvent(ADD_VIDEO, { payload: base, options: { resourceId: "main", scaleMode: "fit" } });
       } else if (item.type === "audio") {
+        console.log('Adding audio:', itemId);
         emitEvent(ADD_AUDIO, { payload: base });
       } else if (item.type === "image") {
+        console.log('Adding image:', itemId);
         emitEvent(ADD_IMAGE, { payload: base, options: { resourceId: "image", scaleMode: "fit" } });
       } else if (item.type === "text") {
+        console.log('Adding text:', itemId);
         emitEvent(ADD_TEXT, { payload: base });
       }
-    });
+      
+      // Add a small delay between items to prevent conflicts
+      if (i < payload.trackItemIds.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+    
+    console.log('Finished processing all items');
     
     // 3) Force a timeline refresh after items are added
     setTimeout(() => {
