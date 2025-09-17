@@ -251,7 +251,7 @@ const ExportButton = ({ stateManager }: { stateManager: StateManager }) => {
 const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
   const { setState } = useStore();
 
-  const handleLoad = () => {
+  const handleLoad = async () => {
     const payload = {
       id: "Uk7lxLDnhIxPzh",
       size: {
@@ -371,6 +371,9 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
     });
 
     // 2) Also add items through the event API so CanvasTimeline reflects them
+    // Add a small delay to allow the store to update first
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     Object.values(payload.trackItemsMap as any).forEach((item: any) => {
       const base = {
         id: item.id,
@@ -393,6 +396,14 @@ const LoadButton = ({ stateManager }: { stateManager: StateManager }) => {
         emitEvent(ADD_TEXT, { payload: base });
       }
     });
+    
+    // 3) Force a timeline refresh after items are added
+    setTimeout(() => {
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        canvas.dispatchEvent(new Event('resize'));
+      }
+    }, 500);
   };
 
   return (
