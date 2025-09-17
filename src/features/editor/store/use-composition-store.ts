@@ -5,6 +5,7 @@ interface CompositionStore {
   // State
   compositions: Composition[];
   currentCompositionId: string | null;
+  currentCompositionName: string | null;
   isLoading: boolean;
   error: string | null;
 
@@ -13,6 +14,7 @@ interface CompositionStore {
   loadComposition: (id: string) => Promise<Composition | null>;
   saveComposition: (name: string, data: any) => Promise<Composition | null>;
   setCurrentCompositionId: (id: string | null) => void;
+  setCurrentCompositionName: (name: string | null) => void;
   clearError: () => void;
 }
 
@@ -20,6 +22,7 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
   // Initial state
   compositions: [],
   currentCompositionId: null,
+  currentCompositionName: null,
   isLoading: false,
   error: null,
 
@@ -46,7 +49,10 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
     try {
       const response = await compositionApi.getComposition(id);
       if (response.success && response.data.composition) {
-        set({ currentCompositionId: id });
+        set({ 
+          currentCompositionId: id,
+          currentCompositionName: response.data.composition.name
+        });
         return response.data.composition;
       } else {
         set({ error: 'Failed to load composition' });
@@ -89,7 +95,8 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
         const newComposition = response.data.composition;
         set(state => ({
           compositions: [newComposition, ...state.compositions],
-          currentCompositionId: newComposition.id
+          currentCompositionId: newComposition.id,
+          currentCompositionName: newComposition.name
         }));
         return newComposition;
       } else {
@@ -107,6 +114,11 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
   // Set current composition ID
   setCurrentCompositionId: (id: string | null) => {
     set({ currentCompositionId: id });
+  },
+
+  // Set current composition name
+  setCurrentCompositionName: (name: string | null) => {
+    set({ currentCompositionName: name });
   },
 
   // Clear error

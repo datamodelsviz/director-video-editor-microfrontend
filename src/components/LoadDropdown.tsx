@@ -11,11 +11,12 @@ import { useCompositionStore } from '@/features/editor/store/use-composition-sto
 
 interface LoadDropdownProps {
   onLoad: (composition: any) => Promise<void>;
+  onNewProject: () => void;
 }
 
-export function LoadDropdown({ onLoad }: LoadDropdownProps) {
+export function LoadDropdown({ onLoad, onNewProject }: LoadDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { compositions, isLoading, loadCompositions, loadComposition } = useCompositionStore();
+  const { compositions, isLoading, loadCompositions, loadComposition, currentCompositionName } = useCompositionStore();
 
   useEffect(() => {
     if (isOpen && compositions.length === 0) {
@@ -29,6 +30,11 @@ export function LoadDropdown({ onLoad }: LoadDropdownProps) {
       await onLoad(composition);
       setIsOpen(false);
     }
+  };
+
+  // Get display name - show current composition name or "Untitled" as default
+  const getDisplayName = () => {
+    return currentCompositionName || 'Untitled';
   };
 
   const formatDate = (dateString: string) => {
@@ -54,16 +60,31 @@ export function LoadDropdown({ onLoad }: LoadDropdownProps) {
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              Load
+              {getDisplayName()}
               <ChevronDown className="h-4 w-4" />
             </>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end">
+        {/* Always show Untitled as the first option */}
+        <DropdownMenuItem
+          onClick={() => {
+            onNewProject();
+            setIsOpen(false);
+          }}
+          className="flex flex-col items-start p-3"
+        >
+          <div className="font-medium text-sm">Untitled</div>
+          <div className="text-xs text-muted-foreground">
+            New composition
+          </div>
+        </DropdownMenuItem>
+        
+        {/* Show compositions if available */}
         {compositions.length === 0 && !isLoading ? (
           <DropdownMenuItem disabled>
-            No compositions found
+            No saved compositions
           </DropdownMenuItem>
         ) : (
           compositions.map((composition) => (
