@@ -154,6 +154,59 @@ export default function Navbar({
       scroll: { left: 0, top: 0 },
     });
 
+    // Add items through the event API so CanvasTimeline reflects them
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    for (let i = 0; i < payload.trackItemIds.length; i++) {
+      const itemId = payload.trackItemIds[i];
+      const item = validatedTrackItemsMap[itemId] as any;
+      if (!item) continue;
+      
+      const base = {
+        id: item.id,
+        type: item.type,
+        details: item.details,
+        metadata: item.metadata,
+        trim: item.trim,
+        display: item.display,
+        playbackRate: item.playbackRate,
+        duration: item.duration,
+        name: item.name,
+      } as any;
+
+      if (item.type === "video") {
+        emitEvent(ADD_VIDEO, { payload: base, options: { resourceId: "main", scaleMode: "fit" } });
+      } else if (item.type === "audio") {
+        const audioPayload = {
+          id: item.id,
+          type: item.type,
+          name: item.name,
+          display: item.display,
+          trim: item.trim,
+          playbackRate: item.playbackRate,
+          duration: item.duration,
+          details: item.details,
+          metadata: item.metadata,
+        };
+        emitEvent(ADD_AUDIO, { payload: audioPayload, options: {} });
+      } else if (item.type === "image") {
+        emitEvent(ADD_IMAGE, { payload: base, options: { resourceId: "image", scaleMode: "fit" } });
+      } else if (item.type === "text") {
+        const textPayload = {
+          id: item.id,
+          type: item.type,
+          display: item.display,
+          details: item.details,
+          name: item.name,
+        };
+        emitEvent(ADD_TEXT, { payload: textPayload, options: {} });
+      }
+      
+      if (i < payload.trackItemIds.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+    
     // Force timeline refresh
     setTimeout(() => {
       const canvas = document.querySelector('canvas');
