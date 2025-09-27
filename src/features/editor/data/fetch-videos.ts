@@ -62,16 +62,17 @@ function normalizeVideosResponse(raw: any): Partial<IVideo>[] {
         item?.details?.src &&
         (item?.preview || item?.details?.src)
       ) {
-        const src = String(item.details.src);
-        const previewSrc = String(item.preview ?? src);
-        const proxiedPreview = shouldProxy(previewSrc) ? toProxyUrl(previewSrc) : previewSrc;
-        return {
-          id: String(item.id),
-          details: { src: src }, // Keep original source URL for rendering
-          preview: proxiedPreview, // Proxy only the preview for display
-          type: "video" as const,
-          duration: item.duration || 5000, // Default 5 seconds if not provided
-        };
+      const src = String(item.details.src);
+      const previewSrc = String(item.preview ?? src);
+      const proxiedPreview = shouldProxy(previewSrc) ? toProxyUrl(previewSrc) : previewSrc;
+      const proxiedSrc = shouldProxy(src) ? toProxyUrl(src) : src;
+      return {
+        id: String(item.id),
+        details: { src: proxiedSrc }, // Proxy the source URL to avoid CORS issues
+        preview: proxiedPreview, // Proxy the preview for display
+        type: "video" as const,
+        duration: item.duration || 5000, // Default 5 seconds if not provided
+      };
       }
 
       // Extract ID from various possible fields
@@ -102,8 +103,9 @@ function normalizeVideosResponse(raw: any): Partial<IVideo>[] {
         item?.thumb_url ??
         (String(src).includes("?") ? String(src) : `${src}?tr=w-190`);
 
-      // Proxy only the preview URL, keep original source for rendering
+      // Proxy both the source URL and preview URL to avoid CORS issues
       const proxiedPreview = shouldProxy(preview) ? toProxyUrl(preview) : preview;
+      const proxiedSrc = shouldProxy(src) ? toProxyUrl(src) : src;
 
       // Extract duration from various possible fields
       const duration = 
@@ -115,8 +117,8 @@ function normalizeVideosResponse(raw: any): Partial<IVideo>[] {
 
       return {
         id: String(id),
-        details: { src: src }, // Keep original source URL for rendering
-        preview: proxiedPreview, // Proxy only the preview for display
+        details: { src: proxiedSrc }, // Proxy the source URL to avoid CORS issues
+        preview: proxiedPreview, // Proxy the preview for display
         type: "video" as const,
         duration: Number(duration),
       };

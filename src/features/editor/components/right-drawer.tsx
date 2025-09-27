@@ -153,7 +153,7 @@ export const RightDrawer = () => {
                 itemId = currentElement.dataset.id;
               } else if (currentElement.dataset.trackItem) {
                 itemId = currentElement.dataset.trackItem;
-              } else if (currentElement.className.includes('id-')) {
+              } else if (currentElement.className && typeof currentElement.className === 'string' && currentElement.className.includes('id-')) {
                 // Extract ID from className like "id-123"
                 const match = currentElement.className.match(/id-([a-zA-Z0-9-]+)/);
                 if (match) itemId = match[1];

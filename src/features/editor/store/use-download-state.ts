@@ -30,6 +30,25 @@ function htmlToPlainTextWithNewlines(html?: string): string {
   }
 }
 
+// Helper function to convert proxied URLs back to original URLs for rendering
+function deproxyUrl(url: string): string {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Check if it's a proxied URL
+  if (url.includes('/proxy?url=')) {
+    try {
+      const decodedUrl = decodeURIComponent(url.split('proxy?url=')[1]);
+      console.log('🔄 Deproxying URL:', url, '->', decodedUrl);
+      return decodedUrl;
+    } catch (e) {
+      console.warn('Failed to deproxy URL:', url, e);
+      return url;
+    }
+  }
+  
+  return url;
+}
+
 // Ensure track items are serialized as plain JSON and include critical fields
 function serializeDesign(design: IDesign): IDesign {
   try {
@@ -96,9 +115,32 @@ function serializeDesign(design: IDesign): IDesign {
             vol = Math.max(0, Math.min(1, vol));
           }
 
+          // Deproxy the source URL for rendering
+          let src = targetDetails.src || originalDetails.src;
+          if (src && typeof src === 'string') {
+            src = deproxyUrl(src);
+          }
+
           (target as any).details = {
             ...targetDetails,
             volume: vol,
+            src: src,
+          };
+        }
+
+        // Handle image URLs - also need to deproxy for rendering
+        if (originalItem.type === "image" && originalItem.details) {
+          const originalDetails = originalItem.details || {};
+          const targetDetails = (target as any).details || {};
+          
+          let src = targetDetails.src || originalDetails.src;
+          if (src && typeof src === 'string') {
+            src = deproxyUrl(src);
+          }
+
+          (target as any).details = {
+            ...targetDetails,
+            src: src,
           };
         }
       }
@@ -109,6 +151,7 @@ function serializeDesign(design: IDesign): IDesign {
     (cloned as any).trackItemsMap = clonedItems;
 
     // Ensure text items carry plain text with \n and an explicit whiteSpace hint
+    // Also ensure all media URLs are deproxied for rendering
     for (const [, item] of Object.entries<any>(clonedItems)) {
       if (item?.type === "text" && item?.details) {
         if (typeof item.details.text === "string") {
@@ -116,6 +159,13 @@ function serializeDesign(design: IDesign): IDesign {
         }
         if (!item.details.whiteSpace) {
           item.details.whiteSpace = "pre-wrap"; // hint for renderer
+        }
+      }
+      
+      // Final pass: ensure all media URLs are deproxied for rendering
+      if ((item?.type === "video" || item?.type === "audio" || item?.type === "image") && item?.details?.src) {
+        if (typeof item.details.src === 'string') {
+          item.details.src = deproxyUrl(item.details.src);
         }
       }
     }
