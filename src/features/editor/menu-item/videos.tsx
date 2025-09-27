@@ -1,5 +1,6 @@
 import Draggable from "@/components/shared/draggable";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VIDEOS } from "../data/video";
 import { dispatch } from "@designcombo/events";
 import { ADD_VIDEO } from "@designcombo/state";
@@ -9,6 +10,22 @@ import React, { useState } from "react";
 import { useIsDraggingOverTimeline } from "../hooks/is-dragging-over-timeline";
 import { useVideosData } from "../data/use-videos-data";
 import { Plus } from "lucide-react";
+
+// Helper function to format source names for display
+const formatSourceName = (source: string): string => {
+  const sourceMap: Record<string, string> = {
+    'remotion_render': 'Renders',
+    'ai_generation': 'Generations', 
+    'user_upload': 'Uploads',
+    'stock_footage': 'Stock',
+    'unknown': 'All Videos'
+  };
+  
+  return sourceMap[source] || source
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
 // Skeleton loader component for video cards
 const VideoCardSkeleton = () => (
@@ -21,7 +38,7 @@ const VideoCardSkeleton = () => (
 
 export const Videos = () => {
   const isDraggingOverTimeline = useIsDraggingOverTimeline();
-  const { videos, loading, error } = useVideosData();
+  const { videos, videosBySource, sources, loading, error } = useVideosData();
 
   const handleAddVideo = (payload: Partial<IVideo>) => {
     // payload.details.src = "https://cdn.designcombo.dev/videos/timer-20s.mp4";
@@ -53,6 +70,52 @@ export const Videos = () => {
     );
   }
 
+  // If we have sources, show tabs; otherwise show all videos
+  if (sources.length > 1) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
+          Videos
+          {error && (
+            <span className="ml-2 text-xs text-red-400">(API Error)</span>
+          )}
+        </div>
+        <Tabs defaultValue={sources[0]} className="flex flex-1 flex-col">
+          <div className="px-4 mb-3">
+            <TabsList className="!inline-flex !w-full bg-muted/30 p-1 rounded-md h-8">
+              {sources.map((source) => (
+                <TabsTrigger 
+                  key={source} 
+                  value={source}
+                  className="text-xs font-medium px-3 py-1 data-[state=active]:bg-background/80 data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground/70 transition-all duration-200 rounded-sm flex-1"
+                >
+                  {formatSourceName(source)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          {sources.map((source) => (
+            <TabsContent key={source} value={source} className="flex-1 mt-0">
+              <ScrollArea>
+                <div className="masonry-sm px-4">
+                  {videosBySource[source]?.map((video, index) => (
+                    <VideoItem
+                      key={`${source}-${index}`}
+                      video={video}
+                      shouldDisplayPreview={!isDraggingOverTimeline}
+                      handleAddImage={handleAddVideo}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Fallback: show all videos without tabs
   return (
     <div className="flex flex-1 flex-col">
       <div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">

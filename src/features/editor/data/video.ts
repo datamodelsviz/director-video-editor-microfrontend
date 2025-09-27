@@ -34,6 +34,7 @@ export const VIDEOS = [
     preview:
       "https://cdn.designcombo.dev/thumbnails/Happiness-shouldnt-depend.png",
     duration: 17000,
+    source: "remotion_render",
   },
   {
     id: "video1",
@@ -41,6 +42,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-1.png",
     duration: 17000,
+    source: "ai_generation",
   },
   {
     id: "video2",
@@ -48,6 +50,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-2.png",
     duration: 25000,
+    source: "ai_generation",
   },
   {
     id: "video3",
@@ -55,6 +58,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-3.png",
     duration: 20000,
+    source: "ai_generation",
   },
   {
     id: "video4",
@@ -62,6 +66,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-4.png",
     duration: 20000,
+    source: "user_upload",
   },
   {
     id: "video5",
@@ -69,6 +74,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-5.png",
     duration: 23000,
+    source: "user_upload",
   },
   {
     id: "video6",
@@ -76,6 +82,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-6.png",
     duration: 10000,
+    source: "ai_generation",
   },
   {
     id: "video7",
@@ -83,6 +90,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-7.png",
     duration: 7593.3330000000005,
+    source: "remotion_render",
   },
   {
     id: "video8",
@@ -90,6 +98,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-8.png",
     duration: 15000,
+    source: "remotion_render",
   },
   {
     id: "video9",
@@ -97,6 +106,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-9.png",
     duration: 15000,
+    source: "user_upload",
   },
   {
     id: "video10",
@@ -104,6 +114,7 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-10.png",
     duration: 5000,
+    source: "user_upload",
   },
   {
     id: "video11",
@@ -111,5 +122,6 @@ export const VIDEOS = [
     type: "video",
     preview: "https://cdn.designcombo.dev/thumbnails/demo-video-s-11.png",
     duration: 5000,
+    source: "user_upload",
   },
 ] as Partial<IVideo>[];

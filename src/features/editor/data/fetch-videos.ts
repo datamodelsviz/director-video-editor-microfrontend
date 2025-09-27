@@ -72,6 +72,7 @@ function normalizeVideosResponse(raw: any): Partial<IVideo>[] {
         preview: proxiedPreview, // Proxy the preview for display
         type: "video" as const,
         duration: item.duration || 5000, // Default 5 seconds if not provided
+        source: item.source || "unknown", // Include the source field
       };
       }
 
@@ -121,7 +122,8 @@ function normalizeVideosResponse(raw: any): Partial<IVideo>[] {
         preview: proxiedPreview, // Proxy the preview for display
         type: "video" as const,
         duration: Number(duration),
+        source: item?.source || "unknown", // Include the source field
       };
     })
-    .filter(Boolean) as Partial<IVideo>[];
+    .filter(Boolean) as unknown as Partial<IVideo>[];
 }
