@@ -407,21 +407,33 @@ export default function Navbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={handleSave}
-                disabled={!hasUnsavedChanges && currentComposition}
-                className="cursor-pointer"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {currentComposition ? 'Save' : 'Save As'}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setShowSaveAsModal(true)}
-                className="cursor-pointer"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save As...
-              </DropdownMenuItem>
+              {currentComposition ? (
+                <>
+                  <DropdownMenuItem
+                    onClick={handleSave}
+                    disabled={!hasUnsavedChanges}
+                    className="cursor-pointer"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    Save
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setShowSaveAsModal(true)}
+                    className="cursor-pointer"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    Save As...
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => setShowSaveAsModal(true)}
+                  className="cursor-pointer"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save As...
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
