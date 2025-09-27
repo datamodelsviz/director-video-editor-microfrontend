@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
-import { MenuIcon, ShareIcon, Upload, ProportionsIcon, Save, Plus } from "lucide-react";
+import { MenuIcon, ShareIcon, Upload, ProportionsIcon, Save, Plus, ChevronDown } from "lucide-react";
 import StateManager from "@designcombo/state";
 import { dispatch as emitEvent } from "@designcombo/events";
 import { HISTORY_UNDO, HISTORY_REDO, DESIGN_RESIZE } from "@designcombo/state";
@@ -393,28 +393,37 @@ export default function Navbar({
           >
             <Plus className="h-4 w-4" />
           </Button>
-          {/* Save button - shows different text based on state */}
-          <Button
-            onClick={handleSave}
-            disabled={!hasUnsavedChanges && currentComposition}
-            className="flex h-8 w-8 items-center justify-center border border-border"
-            variant="outline"
-            size="icon"
-            title={currentComposition ? 'Save' : 'Save As'}
-          >
-            <Save className="h-4 w-4" />
-          </Button>
-
-          {/* Save As button - always available */}
-          <Button
-            onClick={() => setShowSaveAsModal(true)}
-            className="flex h-8 w-8 items-center justify-center border border-border"
-            variant="outline"
-            size="icon"
-            title="Save As"
-          >
-            <Save className="h-4 w-4" />
-          </Button>
+          {/* Save dropdown - icon only with dropdown options */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                disabled={!hasUnsavedChanges && currentComposition}
+                className="flex h-8 w-8 items-center justify-center border border-border"
+                variant="outline"
+                size="icon"
+                title={currentComposition ? 'Save' : 'Save As'}
+              >
+                <Save className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={handleSave}
+                disabled={!hasUnsavedChanges && currentComposition}
+                className="cursor-pointer"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {currentComposition ? 'Save' : 'Save As'}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowSaveAsModal(true)}
+                className="cursor-pointer"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save As...
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
