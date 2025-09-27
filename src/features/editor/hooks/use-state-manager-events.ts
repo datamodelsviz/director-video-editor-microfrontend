@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import StateManager from "@designcombo/state";
 import useStore from "../store/use-store";
+import { useCompositionStore } from "../store/use-composition-store";
 import { IAudio, ITrackItem, IVideo } from "@designcombo/types";
 import { audioDataManager } from "../player/lib/audio-data";
 
@@ -9,6 +10,7 @@ const subscriptionRegistry = new WeakMap<StateManager, Set<string>>();
 
 export const useStateManagerEvents = (stateManager: StateManager) => {
 	const { setState } = useStore();
+	const { markUnsavedChanges } = useCompositionStore();
 	const isSubscribedRef = useRef(false);
 
 	// Handle track item updates
@@ -30,7 +32,8 @@ export const useStateManagerEvents = (stateManager: StateManager) => {
 			duration: currentState.duration,
 			trackItemsMap: currentState.trackItemsMap,
 		});
-	}, [stateManager, setState]);
+		markUnsavedChanges();
+	}, [stateManager, setState, markUnsavedChanges]);
 
 	const handleAddRemoveItems = useCallback(() => {
 		const currentState = stateManager.getState();
@@ -49,14 +52,16 @@ export const useStateManagerEvents = (stateManager: StateManager) => {
 			trackItemIds: currentState.trackItemIds,
 			tracks: currentState.tracks,
 		});
-	}, [stateManager, setState]);
+		markUnsavedChanges();
+	}, [stateManager, setState, markUnsavedChanges]);
 
 	const handleUpdateItemDetails = useCallback(() => {
 		const currentState = stateManager.getState();
 		setState({
 			trackItemsMap: currentState.trackItemsMap,
 		});
-	}, [stateManager, setState]);
+		markUnsavedChanges();
+	}, [stateManager, setState, markUnsavedChanges]);
 
 	useEffect(() => {
 		console.log("useStateManagerEvents", stateManager);

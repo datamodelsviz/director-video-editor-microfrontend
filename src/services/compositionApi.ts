@@ -194,6 +194,11 @@ class CompositionApiService {
   async createComposition(data: CreateCompositionData): Promise<CompositionApiResponse> {
     return this.makeRequest<CompositionApiResponse>('/compositions', 'POST', data);
   }
+
+  // Update existing composition
+  async updateComposition(compositionId: string, data: CreateCompositionData): Promise<CompositionApiResponse> {
+    return this.makeRequest<CompositionApiResponse>(`/compositions/${compositionId}`, 'PUT', data);
+  }
 }
 
 export const compositionApi = new CompositionApiService();

@@ -16,9 +16,18 @@ interface SaveModalProps {
   onClose: () => void;
   onSave: (name: string) => Promise<void>;
   isLoading?: boolean;
+  title?: string;
+  placeholder?: string;
 }
 
-export function SaveModal({ isOpen, onClose, onSave, isLoading = false }: SaveModalProps) {
+export function SaveModal({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  isLoading = false,
+  title = "Save Composition",
+  placeholder = "My Video Composition"
+}: SaveModalProps) {
   const [name, setName] = useState('');
 
   const handleSave = async () => {
@@ -39,7 +48,7 @@ export function SaveModal({ isOpen, onClose, onSave, isLoading = false }: SaveMo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Save Composition</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             Enter a name for your video composition.
           </DialogDescription>
@@ -54,7 +63,7 @@ export function SaveModal({ isOpen, onClose, onSave, isLoading = false }: SaveMo
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="My Video Composition"
+              placeholder={placeholder}
               className="col-span-3"
               disabled={isLoading}
             />

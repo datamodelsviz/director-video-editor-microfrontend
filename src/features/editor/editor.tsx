@@ -21,6 +21,7 @@ import useDataState from "./store/use-data-state";
 import { FONTS } from "./data/fonts";
 import FloatingControl from "./control-item/floating-controls/floating-control";
 import useLayoutStore from "./store/use-layout-store";
+import { useCompositionStore } from "./store/use-composition-store";
 import { RightDrawer } from "./components";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 
@@ -84,6 +85,21 @@ const Editor = () => {
     const percentage = (desiredHeight / screenHeight) * 100;
     timelinePanelRef.current?.resize(percentage);
   }, []);
+
+  // Add unsaved changes warning
+  const { hasUnsavedChanges } = useCompositionStore();
+  
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const handleTimelineResize = () => {
     const timelineContainer = document.getElementById("timeline-container");

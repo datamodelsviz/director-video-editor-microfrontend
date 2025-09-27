@@ -6,6 +6,9 @@ interface CompositionStore {
   compositions: Composition[];
   currentCompositionId: string | null;
   currentCompositionName: string | null;
+  currentComposition: Composition | null;
+  hasUnsavedChanges: boolean;
+  lastSavedAt: Date | null;
   isLoading: boolean;
   error: string | null;
 
@@ -13,8 +16,12 @@ interface CompositionStore {
   loadCompositions: () => Promise<void>;
   loadComposition: (id: string) => Promise<Composition | null>;
   saveComposition: (name: string, data: any) => Promise<Composition | null>;
+  updateComposition: (id: string, data: any) => Promise<Composition | null>;
   setCurrentCompositionId: (id: string | null) => void;
   setCurrentCompositionName: (name: string | null) => void;
+  setCurrentComposition: (composition: Composition | null) => void;
+  markUnsavedChanges: () => void;
+  markSaved: () => void;
   clearError: () => void;
 }
 
@@ -23,6 +30,9 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
   compositions: [],
   currentCompositionId: null,
   currentCompositionName: null,
+  currentComposition: null,
+  hasUnsavedChanges: false,
+  lastSavedAt: null,
   isLoading: false,
   error: null,
 
@@ -96,7 +106,10 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
         set(state => ({
           compositions: [newComposition, ...state.compositions],
           currentCompositionId: newComposition.id,
-          currentCompositionName: newComposition.name
+          currentCompositionName: newComposition.name,
+          currentComposition: newComposition,
+          hasUnsavedChanges: false,
+          lastSavedAt: new Date()
         }));
         return newComposition;
       } else {
@@ -111,6 +124,52 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
     }
   },
 
+  // Update existing composition
+  updateComposition: async (id: string, data: any) => {
+    set({ isLoading: true, error: null });
+    try {
+      const apiData = {
+        name: get().currentComposition?.name || 'Untitled',
+        description: `Updated on ${new Date().toLocaleDateString()}`,
+        duration: data.duration || 0,
+        fps: data.fps || 30,
+        size: data.size || { width: 1080, height: 1920 },
+        tracks_count: data.tracks?.length || 0,
+        is_public: false,
+        category: 'general',
+        tags: [],
+        design: data,
+        options: {
+          fps: data.fps || 30,
+          size: data.size || { width: 1080, height: 1920 },
+          format: 'mp4'
+        }
+      };
+
+      const response = await compositionApi.updateComposition(id, apiData);
+      if (response.success && response.data.composition) {
+        const updatedComposition = response.data.composition;
+        set(state => ({
+          currentComposition: updatedComposition,
+          compositions: state.compositions.map(comp => 
+            comp.id === id ? updatedComposition : comp
+          ),
+          hasUnsavedChanges: false,
+          lastSavedAt: new Date()
+        }));
+        return updatedComposition;
+      } else {
+        set({ error: 'Failed to update composition' });
+        return null;
+      }
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to update composition' });
+      return null;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
   // Set current composition ID
   setCurrentCompositionId: (id: string | null) => {
     set({ currentCompositionId: id });
@@ -119,6 +178,30 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
   // Set current composition name
   setCurrentCompositionName: (name: string | null) => {
     set({ currentCompositionName: name });
+  },
+
+  // Set current composition
+  setCurrentComposition: (composition: Composition | null) => {
+    set({ 
+      currentComposition: composition,
+      currentCompositionId: composition?.id || null,
+      currentCompositionName: composition?.name || null,
+      hasUnsavedChanges: false,
+      lastSavedAt: composition ? new Date(composition.updated_at) : null
+    });
+  },
+
+  // Mark as having unsaved changes
+  markUnsavedChanges: () => {
+    set({ hasUnsavedChanges: true });
+  },
+
+  // Mark as saved
+  markSaved: () => {
+    set({ 
+      hasUnsavedChanges: false, 
+      lastSavedAt: new Date() 
+    });
   },
 
   // Clear error

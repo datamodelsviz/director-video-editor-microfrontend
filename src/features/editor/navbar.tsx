@@ -48,7 +48,17 @@ export default function Navbar({
   showDiscordButton?: boolean;
 }) {
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const { saveComposition, loadComposition } = useCompositionStore();
+  const [showSaveAsModal, setShowSaveAsModal] = useState(false);
+  const { 
+    saveComposition, 
+    updateComposition,
+    loadComposition, 
+    currentComposition, 
+    hasUnsavedChanges,
+    setCurrentComposition,
+    markUnsavedChanges,
+    isLoading
+  } = useCompositionStore();
   const [title, setTitle] = useState(projectName);
 
   const handleUndo = () => {
@@ -79,8 +89,27 @@ export default function Navbar({
     setTitle(e.target.value);
   };
 
-  const handleSave = async (name: string) => {
-    // Get the exact same data that the render API uses
+  // Handle Save (update existing or create new)
+  const handleSave = async () => {
+    const data: IDesign = {
+      id: generateId(),
+      ...stateManager.getState(),
+    };
+    
+    if (currentComposition) {
+      // Update existing composition
+      const result = await updateComposition(currentComposition.id, data);
+      if (result) {
+        console.log('Composition updated successfully:', result);
+      }
+    } else {
+      // No current composition, open Save As modal
+      setShowSaveAsModal(true);
+    }
+  };
+
+  // Handle Save As (always create new)
+  const handleSaveAs = async (name: string) => {
     const data: IDesign = {
       id: generateId(),
       ...stateManager.getState(),
@@ -88,7 +117,8 @@ export default function Navbar({
     
     const result = await saveComposition(name, data);
     if (result) {
-      console.log('Composition saved successfully:', result);
+      setCurrentComposition(result);
+      console.log('Composition saved as:', result);
     }
   };
 
@@ -170,6 +200,9 @@ export default function Navbar({
       scroll: { left: 0, top: 0 },
     });
 
+    // Set current composition and mark as clean
+    setCurrentComposition(composition);
+
     // Add items through the event API so CanvasTimeline reflects them
     await new Promise(resolve => setTimeout(resolve, 100));
     
@@ -237,9 +270,7 @@ export default function Navbar({
     setProjectName('Untitled');
     
     // Clear current composition from store
-    const { setCurrentCompositionId, setCurrentCompositionName } = useCompositionStore.getState();
-    setCurrentCompositionId(null);
-    setCurrentCompositionName(null);
+    setCurrentComposition(null);
     
     // Clear StateManager state first
     stateManager.updateState({
@@ -362,12 +393,25 @@ export default function Navbar({
           >
             <Plus className="h-4 w-4" />
           </Button>
+          {/* Save button - shows different text based on state */}
           <Button
-            onClick={() => setShowSaveModal(true)}
+            onClick={handleSave}
+            disabled={!hasUnsavedChanges && currentComposition}
             className="flex h-8 w-8 items-center justify-center border border-border"
             variant="outline"
             size="icon"
-            title="Save"
+            title={currentComposition ? 'Save' : 'Save As'}
+          >
+            <Save className="h-4 w-4" />
+          </Button>
+
+          {/* Save As button - always available */}
+          <Button
+            onClick={() => setShowSaveAsModal(true)}
+            className="flex h-8 w-8 items-center justify-center border border-border"
+            variant="outline"
+            size="icon"
+            title="Save As"
           >
             <Save className="h-4 w-4" />
           </Button>
@@ -406,6 +450,16 @@ export default function Navbar({
         isOpen={showSaveModal}
         onClose={() => setShowSaveModal(false)}
         onSave={handleSave}
+        isLoading={isLoading}
+      />
+
+      <SaveModal
+        isOpen={showSaveAsModal}
+        onClose={() => setShowSaveAsModal(false)}
+        onSave={handleSaveAs}
+        isLoading={isLoading}
+        title="Save As"
+        placeholder="Enter new composition name"
       />
     </>
   );
