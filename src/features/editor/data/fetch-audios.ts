@@ -63,6 +63,8 @@ function normalizeAudiosResponse(raw: any): Partial<IAudio>[] {
           metadata: {
             author: item.metadata?.author ?? item.author ?? item.artist ?? "Unknown Artist",
           },
+          source: item.source || "unknown",
+          generation_type: item.generation_type || "unknown",
         };
       }
 
@@ -96,6 +98,8 @@ function normalizeAudiosResponse(raw: any): Partial<IAudio>[] {
         metadata: {
           author: String(author),
         },
+        source: item.source || "unknown",
+        generation_type: item.generation_type || "unknown",
       };
     })
     .filter(Boolean) as Partial<IAudio>[];

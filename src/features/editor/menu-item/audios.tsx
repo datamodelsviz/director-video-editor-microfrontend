@@ -1,5 +1,6 @@
 import Draggable from "@/components/shared/draggable";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AUDIOS } from "../data/audio";
 import { dispatch } from "@designcombo/events";
 import { ADD_AUDIO } from "@designcombo/state";
@@ -10,9 +11,21 @@ import React, { useState } from "react";
 import { generateId } from "@designcombo/timeline";
 import { useAudiosData } from "../data/use-audios-data";
 
+// Helper function to format generation type names for display
+const formatGenerationTypeName = (generationType: string): string => {
+  const typeMap: Record<string, string> = {
+    'music': 'Music',
+    'voice': 'Voice',
+    'unknown': 'All Audio'
+  };
+  
+  return typeMap[generationType] || generationType
+    .charAt(0).toUpperCase() + generationType.slice(1);
+};
+
 export const Audios = () => {
   const isDraggingOverTimeline = useIsDraggingOverTimeline();
-  const { audios, loading, error } = useAudiosData();
+  const { audios, audiosByGenerationType, generationTypes, loading, error } = useAudiosData();
 
   const handleAddAudio = (payload: Partial<IAudio>) => {
     payload.id = generateId();
@@ -27,6 +40,7 @@ export const Audios = () => {
       <div className="flex flex-1 flex-col">
         <div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
           Audios
+          <span className="ml-2 text-xs text-zinc-400">(Loading...)</span>
         </div>
         <ScrollArea>
           <div className="flex flex-col px-2 gap-2">
@@ -44,6 +58,7 @@ export const Audios = () => {
       <div className="flex flex-1 flex-col">
         <div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
           Audios
+          <span className="ml-2 text-xs text-red-400">(API Error)</span>
         </div>
         <div className="flex flex-1 items-center justify-center px-4">
           <div className="text-center text-zinc-400">
@@ -55,10 +70,59 @@ export const Audios = () => {
     );
   }
 
+  // If we have generation types, show tabs; otherwise show all audios
+  if (generationTypes.length > 1) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
+          Audios
+          {error && (
+            <span className="ml-2 text-xs text-red-400">(API Error)</span>
+          )}
+        </div>
+        <Tabs defaultValue={generationTypes[0]} className="flex flex-1 flex-col">
+          <div className="px-4 mb-3">
+            <TabsList className="!inline-flex !w-full bg-muted/30 p-1 rounded-md h-8">
+              {generationTypes.map((generationType) => (
+                <TabsTrigger 
+                  key={generationType} 
+                  value={generationType}
+                  className="text-xs font-medium px-3 py-1 data-[state=active]:bg-background/80 data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground/70 transition-all duration-200 rounded-sm flex-1"
+                >
+                  {formatGenerationTypeName(generationType)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          {generationTypes.map((generationType) => (
+            <TabsContent key={generationType} value={generationType} className="flex-1 mt-0">
+              <ScrollArea>
+                <div className="flex flex-col px-2">
+                  {audiosByGenerationType[generationType]?.map((audio, index) => (
+                    <AudioItem
+                      key={`${generationType}-${index}`}
+                      shouldDisplayPreview={!isDraggingOverTimeline}
+                      handleAddAudio={handleAddAudio}
+                      audio={audio}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Fallback: show all audios without tabs
   return (
     <div className="flex flex-1 flex-col">
       <div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
         Audios
+        {error && (
+          <span className="ml-2 text-xs text-red-400">(API Error)</span>
+        )}
       </div>
       <ScrollArea>
         <div className="flex flex-col px-2">
