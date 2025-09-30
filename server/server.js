@@ -6,7 +6,8 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 // Security headers
 app.use((req, res, next) => {
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  // Remove X-Frame-Options to allow iframe embedding for microfrontend use
+  // You can add Content-Security-Policy for more granular control if needed
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
