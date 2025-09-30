@@ -35,7 +35,7 @@ async function testCompositionAPI() {
         duration: 5000,
         activeIds: [],
         structure: [],
-        background: { type: 'color', value: 'transparent' }
+        background: { type: 'color' as const, value: 'transparent' }
       },
       options: {
         fps: 30,

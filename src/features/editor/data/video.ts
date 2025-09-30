@@ -124,4 +124,4 @@ export const VIDEOS = [
     duration: 5000,
     source: "user_upload",
   },
-] as Partial<IVideo>[];
+] as any as Partial<IVideo>[];

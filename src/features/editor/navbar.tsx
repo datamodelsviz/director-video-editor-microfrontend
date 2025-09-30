@@ -397,7 +397,7 @@ export default function Navbar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                disabled={!hasUnsavedChanges && currentComposition}
+                disabled={!hasUnsavedChanges && !!currentComposition}
                 className="flex h-8 w-8 items-center justify-center border border-border"
                 variant="outline"
                 size="icon"

@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Security headers
 app.use((req, res, next) => {
@@ -12,17 +13,15 @@ app.use((req, res, next) => {
 });
 
 // Proxy endpoint for handling CORS issues with external media
-app.use('/proxy', async (req, res) => {
+app.get('/proxy', async (req, res) => {
   try {
     const target = req.query.url;
     if (!target) {
-      res.statusCode = 400;
-      res.end('Missing url param');
+      res.status(400).send('Missing url param');
       return;
     }
 
     const response = await fetch(target);
-    res.statusCode = response.status;
     
     // Pass through content-type if present
     const contentType = response.headers.get('content-type');
@@ -35,10 +34,9 @@ app.use('/proxy', async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
 
     const arrayBuffer = await response.arrayBuffer();
-    res.end(Buffer.from(arrayBuffer));
+    res.status(response.status).send(Buffer.from(arrayBuffer));
   } catch (err) {
-    res.statusCode = 502;
-    res.end(`Proxy error: ${err?.message || 'unknown'}`);
+    res.status(502).send(`Proxy error: ${err?.message || 'unknown'}`);
   }
 });
 
@@ -50,8 +48,9 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, HOST, () => {
   console.log(`🎬 Video Editor server running on http://localhost:${PORT}`);
+  console.log(`🌐 Server listening on ${HOST}:${PORT}`);
   console.log(`🌐 Accessible from other devices on your network`);
   console.log(`📁 Serving files from: ${path.join(__dirname, '../dist')}`);
 });
