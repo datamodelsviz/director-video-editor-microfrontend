@@ -44,7 +44,7 @@ app.get('/proxy', async (req, res) => {
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // Handle SPA routing (compatible with Express 5 + path-to-regexp v8)
-app.get('/*', (req, res) => {
+app.get('/(.*)', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
