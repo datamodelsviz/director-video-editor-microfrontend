@@ -43,8 +43,8 @@ app.get('/proxy', async (req, res) => {
 // Serve static files from dist folder
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// Handle SPA routing
-app.get('*', (req, res) => {
+// Handle SPA routing (compatible with Express 5 + path-to-regexp v8)
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
