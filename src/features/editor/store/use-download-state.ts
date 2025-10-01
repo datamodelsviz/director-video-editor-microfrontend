@@ -97,7 +97,7 @@ function serializeDesign(design: IDesign): IDesign {
           target.playbackRate = originalItem.playbackRate;
         }
 
-        // Normalize media volumes to 0–1 (UI is 0–100)
+        // Normalize media volumes to 0–1 internally, but send as 0–100 to Remotion renderer
         if ((originalItem.type === "audio" || originalItem.type === "video") && originalItem.details) {
           const originalDetails = originalItem.details || {};
           const targetDetails = (target as any).details || {};
@@ -123,7 +123,8 @@ function serializeDesign(design: IDesign): IDesign {
 
           (target as any).details = {
             ...targetDetails,
-            volume: vol,
+            // Convert volume from 0-1 to 0-100 for Remotion renderer (which divides by 100)
+            volume: vol * 100,
             src: src,
           };
         }
