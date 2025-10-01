@@ -1,4 +1,5 @@
 import { parentComm } from './parentCommunication';
+import { config } from '../config/environment';
 
 // Basic API Response Types
 export interface CompositionApiResponse {
@@ -127,7 +128,12 @@ export interface CreateCompositionData {
 }
 
 class CompositionApiService {
-  private baseUrl = 'http://localhost:8000/api/v1';
+  private baseUrl: string;
+
+  constructor() {
+    const apiBase = (config.primaryApp.apiBaseUrl || '').replace(/\/+$/, '');
+    this.baseUrl = apiBase.endsWith('/api') ? `${apiBase}/v1` : `${apiBase}/api/v1`;
+  }
 
   private async makeRequest<T>(
     endpoint: string,
