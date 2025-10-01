@@ -53,11 +53,11 @@ function normalizeAudiosResponse(raw: any): Partial<IAudio>[] {
         (item?.name || item?.title)
       ) {
         const src = String(item.details.src);
-        // For audio, we don't have a separate preview, so we don't proxy the source
-        // Keep original source URL for rendering
+        // Use proxy URL if needed to handle CORS issues
+        const finalSrc = shouldProxy(src) ? toProxyUrl(src) : src;
         return {
           id: String(item.id),
-          details: { src: src }, // Keep original source URL for rendering
+          details: { src: finalSrc },
           name: String(item.name ?? item.title ?? "Untitled Audio"),
           type: "audio" as const,
           metadata: {
@@ -84,15 +84,15 @@ function normalizeAudiosResponse(raw: any): Partial<IAudio>[] {
       }
 
       const src = String(rawSrc);
-      // For audio, we don't have a separate preview, so we don't proxy the source
-      // Keep original source URL for rendering
+      // Use proxy URL if needed to handle CORS issues
+      const finalSrc = shouldProxy(src) ? toProxyUrl(src) : src;
 
       const name = item?.name ?? item?.title ?? item?.filename ?? "Untitled Audio";
       const author = item?.metadata?.author ?? item?.author ?? item?.artist ?? "Unknown Artist";
 
       return {
         id: String(id),
-        details: { src: src }, // Keep original source URL for rendering
+        details: { src: finalSrc },
         name: String(name),
         type: "audio" as const,
         metadata: {

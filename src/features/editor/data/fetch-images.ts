@@ -65,10 +65,11 @@ function normalizeImagesResponse(raw: any): Partial<IImage>[] {
         const src = String(item.details.src);
         const previewSrc = String(item.preview ?? src);
         const proxiedPreview = shouldProxy(previewSrc) ? toProxyUrl(previewSrc) : previewSrc;
+        const proxiedSrc = shouldProxy(src) ? toProxyUrl(src) : src;
         return {
           id: String(item.id),
-          details: { src: src }, // Keep original source URL for rendering
-          preview: proxiedPreview, // Proxy only the preview for display
+          details: { src: proxiedSrc }, // Proxy the source URL to avoid CORS issues
+          preview: proxiedPreview, // Proxy the preview for display
           type: "image" as const,
         };
       }
@@ -101,13 +102,14 @@ function normalizeImagesResponse(raw: any): Partial<IImage>[] {
         item?.thumb_url ??
         (String(src).includes("?") ? String(src) : `${src}?tr=w-190`);
 
-      // Proxy only the preview URL, keep original source for rendering
+      // Proxy both the source URL and preview URL to avoid CORS issues
       const proxiedPreview = shouldProxy(preview) ? toProxyUrl(preview) : preview;
+      const proxiedSrc = shouldProxy(src) ? toProxyUrl(src) : src;
 
       return {
         id: String(id),
-        details: { src: src }, // Keep original source URL for rendering
-        preview: proxiedPreview, // Proxy only the preview for display
+        details: { src: proxiedSrc }, // Proxy the source URL to avoid CORS issues
+        preview: proxiedPreview, // Proxy the preview for display
         type: "image" as const,
       };
     })
