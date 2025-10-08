@@ -17,9 +17,6 @@ Video Editor application using React and TypeScript.
     <a href="https://github.com/designcombo/react-video-editor">X</a>
 </p>
 </div>
-
-[![](https://cdn.designcombo.dev/editor-preview.png)](https://github.com/designcombo/react-video-editor)
-
 ## ✨ Features
 
 - 🎬 Timeline Editing: Arrange and trim media on a visual timeline.
