@@ -55,20 +55,27 @@ export const useCompositionStore = create<CompositionStore>((set, get) => ({
 
   // Load specific composition
   loadComposition: async (id: string) => {
+    console.log('CompositionStore: loadComposition called with ID:', id);
     set({ isLoading: true, error: null });
     try {
+      console.log('CompositionStore: Calling compositionApi.getComposition...');
       const response = await compositionApi.getComposition(id);
+      console.log('CompositionStore: API response:', response);
+      
       if (response.success && response.data.composition) {
+        console.log('CompositionStore: Composition loaded successfully:', response.data.composition.name);
         set({ 
           currentCompositionId: id,
           currentCompositionName: response.data.composition.name
         });
         return response.data.composition;
       } else {
+        console.error('CompositionStore: Failed to load composition - response:', response);
         set({ error: 'Failed to load composition' });
         return null;
       }
     } catch (error) {
+      console.error('CompositionStore: Error loading composition:', error);
       set({ error: error instanceof Error ? error.message : 'Failed to load composition' });
       return null;
     } finally {

@@ -38,6 +38,7 @@ export default function Navbar({
   showMenuButton = true,
   showShareButton = true,
   showDiscordButton = true,
+  onLoadComposition,
 }: {
   user: null;
   stateManager: StateManager;
@@ -46,6 +47,7 @@ export default function Navbar({
   showMenuButton?: boolean;
   showShareButton?: boolean;
   showDiscordButton?: boolean;
+  onLoadComposition?: (composition: any) => Promise<void>;
 }) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showSaveAsModal, setShowSaveAsModal] = useState(false);
@@ -383,7 +385,7 @@ export default function Navbar({
       {/* Center section - Load Dropdown with Save and Plus buttons */}
       <div className="flex h-14 items-center justify-center">
         <div className="bg-sidebar pointer-events-auto flex h-12 items-center gap-2 rounded-md px-2.5">
-          <LoadDropdown onLoad={handleLoad} onNewProject={handleNewProject} />
+          <LoadDropdown onLoad={onLoadComposition || handleLoad} onNewProject={handleNewProject} />
           <Button
             onClick={handleNewProject}
             className="flex h-8 w-8 items-center justify-center border border-border"

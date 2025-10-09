@@ -193,7 +193,19 @@ class CompositionApiService {
   // Get composition details
   async getComposition(compositionId: string): Promise<CompositionApiResponse> {
     const endpoint = `/compositions/${compositionId}`;
-    return this.makeRequest<CompositionApiResponse>(endpoint);
+    console.log('CompositionApi: getComposition called with ID:', compositionId);
+    console.log('CompositionApi: Full endpoint:', `${this.baseUrl}${endpoint}`);
+    console.log('CompositionApi: API readiness:', parentComm.isReadyForAPI());
+    console.log('CompositionApi: Auth token available:', !!parentComm.getAuthToken());
+    
+    try {
+      const result = await this.makeRequest<CompositionApiResponse>(endpoint);
+      console.log('CompositionApi: Request successful, result:', result);
+      return result;
+    } catch (error) {
+      console.error('CompositionApi: Request failed:', error);
+      throw error;
+    }
   }
 
   // Create new composition
