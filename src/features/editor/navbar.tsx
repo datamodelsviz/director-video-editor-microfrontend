@@ -482,7 +482,7 @@ export default function Navbar({
         onSave={handleSaveAs}
         isLoading={isLoading}
         title="Save As"
-        placeholder="Enter new composition name"
+        placeholder="Enter new workspace name"
       />
     </>
   );

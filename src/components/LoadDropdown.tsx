@@ -77,14 +77,14 @@ export function LoadDropdown({ onLoad, onNewProject }: LoadDropdownProps) {
         >
           <div className="font-medium text-sm">Untitled</div>
           <div className="text-xs text-muted-foreground">
-            New composition
+            New Workspace
           </div>
         </DropdownMenuItem>
         
         {/* Show compositions if available */}
         {compositions.length === 0 && !isLoading ? (
           <DropdownMenuItem disabled>
-            No saved compositions
+            No saved workspace
           </DropdownMenuItem>
         ) : (
           compositions.map((composition) => (
