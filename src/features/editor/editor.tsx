@@ -24,6 +24,7 @@ import useLayoutStore from "./store/use-layout-store";
 import { useCompositionStore } from "./store/use-composition-store";
 import { RightDrawer } from "./components";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
+import { generateDefaultWorkspaceName } from "../../utils/workspaceName";
 
 const stateManager = new StateManager({
   size: {
@@ -33,7 +34,7 @@ const stateManager = new StateManager({
 });
 
 const Editor = () => {
-  const [projectName, setProjectName] = useState<string>("Untitled video");
+  const [projectName, setProjectName] = useState<string>(generateDefaultWorkspaceName());
   const timelinePanelRef = useRef<ImperativePanelHandle>(null);
   const { timeline, playerRef } = useStore();
   const { isSidebarHovered, setIsSidebarHovered } = useLayoutStore();

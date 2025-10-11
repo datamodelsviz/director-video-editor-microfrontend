@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { generateDefaultWorkspaceName } from '../utils/workspaceName';
 
 interface SaveModalProps {
   isOpen: boolean;
@@ -25,10 +26,17 @@ export function SaveModal({
   onClose, 
   onSave, 
   isLoading = false,
-  title = "Save Composition",
-  placeholder = "My Video Composition"
+  title = "Save Workspace",
+  placeholder = generateDefaultWorkspaceName()
 }: SaveModalProps) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(generateDefaultWorkspaceName());
+
+  // Reset name to new default when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setName(generateDefaultWorkspaceName());
+    }
+  }, [isOpen]);
 
   const handleSave = async () => {
     if (name.trim()) {
@@ -50,7 +58,7 @@ export function SaveModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Enter a name for your video composition.
+            Enter a name for your video workspace.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

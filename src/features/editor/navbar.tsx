@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
-import { MenuIcon, ShareIcon, Upload, ProportionsIcon, Save, Plus, ChevronDown } from "lucide-react";
+import { MenuIcon, ShareIcon, Upload, ProportionsIcon, Save, Plus, ChevronDown, CloudUpload } from "lucide-react";
 import StateManager from "@designcombo/state";
 import { dispatch as emitEvent } from "@designcombo/events";
 import { HISTORY_UNDO, HISTORY_REDO, DESIGN_RESIZE } from "@designcombo/state";
@@ -29,6 +29,7 @@ import { ADD_AUDIO, ADD_IMAGE, ADD_TEXT, ADD_VIDEO } from "@designcombo/state";
 import { SaveModal } from "@/components/SaveModal";
 import { LoadDropdown } from "@/components/LoadDropdown";
 import { useCompositionStore } from "./store/use-composition-store";
+import { generateDefaultWorkspaceName } from "../../utils/workspaceName";
 
 export default function Navbar({
   user,
@@ -266,8 +267,8 @@ export default function Navbar({
   };
 
   const handleNewProject = () => {
-    // Reset project name
-    setProjectName('Untitled');
+    // Reset project name with new default format
+    setProjectName(generateDefaultWorkspaceName());
     
     // Clear current composition from store
     setCurrentComposition(null);
@@ -389,7 +390,7 @@ export default function Navbar({
             className="flex h-8 w-8 items-center justify-center border border-border"
             variant="outline"
             size="icon"
-            title="New Project"
+            title="New Workspace"
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -403,7 +404,7 @@ export default function Navbar({
                 size="icon"
                 title={currentComposition ? 'Save' : 'Save As'}
               >
-                <Save className="h-4 w-4" />
+                <CloudUpload className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -414,14 +415,14 @@ export default function Navbar({
                     disabled={!hasUnsavedChanges}
                     className="cursor-pointer"
                   >
-                    <Save className="mr-2 h-4 w-4" />
+                    <CloudUpload className="mr-2 h-4 w-4" />
                     Save
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setShowSaveAsModal(true)}
                     className="cursor-pointer"
                   >
-                    <Save className="mr-2 h-4 w-4" />
+                    <CloudUpload className="mr-2 h-4 w-4" />
                     Save As...
                   </DropdownMenuItem>
                 </>
@@ -430,7 +431,7 @@ export default function Navbar({
                   onClick={() => setShowSaveAsModal(true)}
                   className="cursor-pointer"
                 >
-                  <Save className="mr-2 h-4 w-4" />
+                  <CloudUpload className="mr-2 h-4 w-4" />
                   Save As...
                 </DropdownMenuItem>
               )}
@@ -480,7 +481,7 @@ export default function Navbar({
         onSave={handleSaveAs}
         isLoading={isLoading}
         title="Save As"
-        placeholder="Enter new composition name"
+        placeholder="Enter new workspace name"
       />
     </>
   );
