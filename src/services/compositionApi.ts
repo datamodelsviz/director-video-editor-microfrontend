@@ -140,13 +140,20 @@ class CompositionApiService {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
     data?: any
   ): Promise<T> {
+    // Check if running in iframe mode
+    if (!parentComm.isRunningInIframe()) {
+      const errorMsg = 'Cannot save - app is running in standalone mode. Please use the app within the VX platform.';
+      console.warn('[CompositionAPI]', errorMsg);
+      throw new Error(errorMsg);
+    }
+
     if (!parentComm.isReadyForAPI()) {
       throw new Error('Not ready for API calls - waiting for auth token');
     }
 
     const token = parentComm.getAuthToken();
     if (!token) {
-      throw new Error('No authentication token available');
+      throw new Error('No authentication token available - please reload the page');
     }
 
     const url = `${this.baseUrl}${endpoint}`;
@@ -163,23 +170,26 @@ class CompositionApiService {
     }
 
     try {
+      console.log('[CompositionAPI] Making request:', method, url);
       const response = await fetch(url, config);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.detail?.error?.message || 
-          `API call failed: ${response.status} ${response.statusText}`
-        );
+        const errorMessage = errorData.detail?.error?.message || 
+          `API call failed: ${response.status} ${response.statusText}`;
+        console.error('[CompositionAPI] Request failed:', errorMessage);
+        throw new Error(errorMessage);
       }
 
       if (method === 'DELETE' && response.status === 204) {
         return {} as T;
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('[CompositionAPI] Request successful:', result);
+      return result;
     } catch (error) {
-      console.error('Composition API error:', error);
+      console.error('[CompositionAPI] Error:', error);
       throw error;
     }
   }

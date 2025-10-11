@@ -20,10 +20,11 @@ export function LoadDropdown({ onLoad, onNewProject }: LoadDropdownProps) {
   const { compositions, isLoading, loadCompositions, loadComposition, currentCompositionName } = useCompositionStore();
 
   useEffect(() => {
-    if (isOpen && compositions.length === 0) {
+    if (isOpen) {
+      console.log('[LoadDropdown] Dropdown opened, loading compositions...');
       loadCompositions();
     }
-  }, [isOpen, compositions.length, loadCompositions]);
+  }, [isOpen, loadCompositions]);
 
   const handleLoad = async (compositionId: string) => {
     const composition = await loadComposition(compositionId);
@@ -62,27 +63,13 @@ export function LoadDropdown({ onLoad, onNewProject }: LoadDropdownProps) {
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              {getDisplayName()}
+              Open
               <ChevronDown className="h-4 w-4" />
             </>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end">
-        {/* Always show Untitled as the first option */}
-        <DropdownMenuItem
-          onClick={() => {
-            onNewProject();
-            setIsOpen(false);
-          }}
-          className="flex flex-col items-start p-3"
-        >
-          <div className="font-medium text-sm">{generateDefaultWorkspaceName()}</div>
-          <div className="text-xs text-muted-foreground">
-            New workspace
-          </div>
-        </DropdownMenuItem>
-        
         {/* Show compositions if available */}
         {compositions.length === 0 && !isLoading ? (
           <DropdownMenuItem disabled>

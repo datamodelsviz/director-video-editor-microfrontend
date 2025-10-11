@@ -25,6 +25,7 @@ import { useCompositionStore } from "./store/use-composition-store";
 import { RightDrawer } from "./components";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { generateDefaultWorkspaceName } from "../../utils/workspaceName";
+import { useAutosave } from "../../hooks/useAutosave";
 
 const stateManager = new StateManager({
   size: {
@@ -41,6 +42,14 @@ const Editor = () => {
 
   useTimelineEvents();
   useKeyboardShortcuts();
+  
+  // Initialize autosave
+  const autosave = useAutosave(stateManager, {
+    debounceDelay: 2000, // 2 seconds for localStorage
+    periodicInterval: 30000, // 30 seconds for backend
+    enableLocalStorage: true,
+    enableBackendAutosave: true,
+  });
   
   // Debug hover state changes
   useEffect(() => {
@@ -133,6 +142,7 @@ const Editor = () => {
         showMenuButton={false}
         showShareButton={false}
         showDiscordButton={false}
+        autosave={autosave}
       />
       <div className="flex flex-1">
         <ResizablePanelGroup style={{ flex: 1 }} direction="vertical">

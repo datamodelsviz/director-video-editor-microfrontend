@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { debounce } from "lodash";
 import { MenuIcon, ShareIcon, Upload, ProportionsIcon, Save, Plus, ChevronDown, CloudUpload } from "lucide-react";
 import StateManager from "@designcombo/state";
@@ -30,6 +30,8 @@ import { SaveModal } from "@/components/SaveModal";
 import { LoadDropdown } from "@/components/LoadDropdown";
 import { useCompositionStore } from "./store/use-composition-store";
 import { generateDefaultWorkspaceName } from "../../utils/workspaceName";
+import { CheckCircle, Clock, AlertCircle, Wifi, WifiOff, Settings } from "lucide-react";
+// import { AutosaveSettings } from "@/components/AutosaveSettings";
 
 export default function Navbar({
   user,
@@ -39,6 +41,7 @@ export default function Navbar({
   showMenuButton = true,
   showShareButton = true,
   showDiscordButton = true,
+  autosave,
 }: {
   user: null;
   stateManager: StateManager;
@@ -47,12 +50,31 @@ export default function Navbar({
   showMenuButton?: boolean;
   showShareButton?: boolean;
   showDiscordButton?: boolean;
+  autosave?: any;
 }) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showSaveAsModal, setShowSaveAsModal] = useState(false);
+  const [showAutosaveSettings, setShowAutosaveSettings] = useState(false);
+  const [, setUpdateTrigger] = useState(0);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper function to format time ago
+  const formatTimeAgo = (date: Date | null) => {
+    if (!date) return 'Never';
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  };
   const { 
     saveComposition, 
     updateComposition,
+    autosaveComposition,
     loadComposition, 
     currentComposition, 
     hasUnsavedChanges,
@@ -60,7 +82,23 @@ export default function Navbar({
     markUnsavedChanges,
     isLoading
   } = useCompositionStore();
-  const [title, setTitle] = useState(projectName);
+  const [title, setTitle] = useState(projectName || generateDefaultWorkspaceName());
+  
+  // Debug: Log when projectName changes
+  useEffect(() => {
+    console.log('[Navbar] projectName changed to:', projectName);
+    console.log('[Navbar] current title:', title);
+    setTitle(projectName);
+  }, [projectName]);
+
+  // Update timestamp display every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUpdateTrigger(prev => prev + 1);
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleUndo = () => {
     dispatch(HISTORY_UNDO);
@@ -90,36 +128,94 @@ export default function Navbar({
     setTitle(e.target.value);
   };
 
+  const handleTitleClick = () => {
+    setIsEditingTitle(true);
+    // Focus input after state update
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    }, 0);
+  };
+
+  const handleTitleBlur = async () => {
+    setIsEditingTitle(false);
+    // Save the workspace name when focus is lost
+    if (title && title !== projectName) {
+      console.log('[Navbar] Saving workspace name on blur:', title);
+      setProjectName(title);
+      await handleSave();
+    }
+  };
+
+  const handleTitleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      // Save the workspace name when Enter is pressed
+      e.currentTarget.blur();
+    } else if (e.key === 'Escape') {
+      // Cancel editing and revert to original name
+      setTitle(projectName);
+      setIsEditingTitle(false);
+      e.currentTarget.blur();
+    }
+  };
+
   // Handle Save (update existing or create new)
   const handleSave = async () => {
+    console.log('[Navbar] handleSave called', { currentComposition, title });
+    
     const data: IDesign = {
       id: generateId(),
       ...stateManager.getState(),
     };
     
-    if (currentComposition) {
-      // Update existing composition
-      const result = await updateComposition(currentComposition.id, data);
-      if (result) {
-        console.log('Composition updated successfully:', result);
+    try {
+      if (currentComposition) {
+        // Update existing composition
+        console.log('[Navbar] Updating existing composition:', currentComposition.id);
+        const result = await updateComposition(currentComposition.id, data);
+        if (result) {
+          console.log('[Navbar] Composition updated successfully:', result);
+        } else {
+          console.error('[Navbar] Update returned null');
+        }
+      } else {
+        // No current composition, save with current workspace name
+        const workspaceName = title || generateDefaultWorkspaceName();
+        console.log('[Navbar] Creating new composition with name:', workspaceName);
+        const result = await saveComposition(workspaceName, data);
+        if (result) {
+          setCurrentComposition(result);
+          setProjectName(workspaceName);
+          setTitle(workspaceName);
+          console.log('[Navbar] Composition saved successfully:', result);
+        } else {
+          console.error('[Navbar] Save returned null');
+        }
       }
-    } else {
-      // No current composition, open Save As modal
-      setShowSaveAsModal(true);
+    } catch (error) {
+      console.error('[Navbar] Save failed:', error);
     }
   };
 
   // Handle Save As (always create new)
   const handleSaveAs = async (name: string) => {
+    console.log('[Save As] Starting save as with name:', name);
     const data: IDesign = {
       id: generateId(),
       ...stateManager.getState(),
     };
     
+    console.log('[Save As] Data to save:', data);
     const result = await saveComposition(name, data);
+    console.log('[Save As] Result:', result);
+    
     if (result) {
       setCurrentComposition(result);
-      console.log('Composition saved as:', result);
+      setProjectName(name);
+      setTitle(name);
+      console.log('[Save As] Composition saved as:', result);
+    } else {
+      console.error('[Save As] Failed to save composition');
     }
   };
 
@@ -271,7 +367,8 @@ export default function Navbar({
     setProjectName(generateDefaultWorkspaceName());
     
     // Clear current composition from store
-    setCurrentComposition(null);
+    const { createNewWorkspace } = useCompositionStore.getState();
+    createNewWorkspace();
     
     // Clear StateManager state first
     stateManager.updateState({
@@ -356,8 +453,31 @@ export default function Navbar({
             </DropdownMenu>
           </div>
         )}
-        <div className="bg-sidebar pointer-events-auto flex h-12 items-center px-1.5">
-          {/* ResizeVideo moved to timeline header */}
+        <div className="bg-sidebar pointer-events-auto flex h-12 items-center gap-2 px-2.5">
+          {/* New Workspace Button */}
+          <Button
+            onClick={handleNewProject}
+            className="flex h-8 w-8 items-center justify-center border border-border"
+            variant="outline"
+            size="icon"
+            title="New Workspace"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          
+          {/* Open Workspace Button */}
+          <LoadDropdown onLoad={handleLoad} onNewProject={handleNewProject} />
+          
+          {/* Save Button */}
+          <Button
+            onClick={handleSave}
+            className="flex h-8 w-8 items-center justify-center border border-border"
+            variant="outline"
+            size="icon"
+            title="Save"
+          >
+            <CloudUpload className="h-4 w-4" />
+          </Button>
         </div>
         
         {/* Undo/Redo buttons - hidden for now */}
@@ -381,68 +501,49 @@ export default function Navbar({
         </div> */}
       </div>
 
-      {/* Center section - Load Dropdown with Save and Plus buttons */}
+      {/* Center section - Workspace Name with Inline Edit */}
       <div className="flex h-14 items-center justify-center">
-        <div className="bg-sidebar pointer-events-auto flex h-12 items-center gap-2 rounded-md px-2.5">
-          <LoadDropdown onLoad={handleLoad} onNewProject={handleNewProject} />
-          <Button
-            onClick={handleNewProject}
-            className="flex h-8 w-8 items-center justify-center border border-border"
-            variant="outline"
-            size="icon"
-            title="New Workspace"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          {/* Save dropdown - icon only with dropdown options */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                disabled={!hasUnsavedChanges && !!currentComposition}
-                className="flex h-8 w-8 items-center justify-center border border-border"
-                variant="outline"
-                size="icon"
-                title={currentComposition ? 'Save' : 'Save As'}
-              >
-                <CloudUpload className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {currentComposition ? (
-                <>
-                  <DropdownMenuItem
-                    onClick={handleSave}
-                    disabled={!hasUnsavedChanges}
-                    className="cursor-pointer"
-                  >
-                    <CloudUpload className="mr-2 h-4 w-4" />
-                    Save
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setShowSaveAsModal(true)}
-                    className="cursor-pointer"
-                  >
-                    <CloudUpload className="mr-2 h-4 w-4" />
-                    Save As...
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => setShowSaveAsModal(true)}
-                  className="cursor-pointer"
-                >
-                  <CloudUpload className="mr-2 h-4 w-4" />
-                  Save As...
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="pointer-events-auto flex h-12 items-center">
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={title}
+              onChange={handleTitleChange}
+              onBlur={handleTitleBlur}
+              onKeyDown={handleTitleKeyDown}
+              className="bg-transparent border-none outline-none text-center text-sm font-medium text-foreground px-2 min-w-[200px] focus:bg-background/10 rounded"
+              placeholder="Workspace name"
+            />
+          ) : (
+            <button
+              onClick={handleTitleClick}
+              className="text-sm font-medium text-foreground hover:bg-background/10 px-2 py-1 rounded transition-colors cursor-text"
+              title="Click to edit workspace name"
+            >
+              {title || "Untitled Workspace"}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Right section - Other buttons */}
       <div className="flex h-14 items-center justify-end gap-2">
         <div className="bg-sidebar pointer-events-auto flex h-12 items-center gap-2 rounded-md px-2.5">
+          {/* Last Saved Timestamp */}
+          {autosave && autosave.lastAutosaveAt && (
+            <div className="text-xs text-muted-foreground">
+              Saved {formatTimeAgo(autosave.lastAutosaveAt)}
+            </div>
+          )}
+          
+          {/* Autosave Status Indicator */}
+          {autosave && (
+            <div className="flex items-center gap-2">
+              <AutosaveIndicator autosave={autosave} />
+            </div>
+          )}
+          
           {showShareButton && (
             <Button
               className="flex h-8 gap-1 border border-border"
@@ -480,18 +581,104 @@ export default function Navbar({
         onClose={() => setShowSaveAsModal(false)}
         onSave={handleSaveAs}
         isLoading={isLoading}
-        title="Save As"
-        placeholder="Enter new workspace name"
+        title="Switch Workspace"
+        placeholder="Enter workspace name"
       />
+
+      {/* Autosave Settings Modal - Temporarily disabled */}
+      {/* {showAutosaveSettings && autosave && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="relative">
+            <AutosaveSettings 
+              autosave={autosave}
+              onClose={() => setShowAutosaveSettings(false)}
+            />
+          </div>
+        </div>
+      )} */}
     </>
   );
 }
+
+// Autosave Status Indicator Component
+const AutosaveIndicator = ({ autosave }: { autosave: any }) => {
+  const formatTimeAgo = (date: Date | null) => {
+    if (!date) return 'Never';
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  };
+
+  const getStatusIcon = () => {
+    if (autosave.isAutosaving) {
+      return <Clock className="h-3 w-3 text-blue-400 animate-pulse" />;
+    }
+    
+    if (autosave.error) {
+      return <AlertCircle className="h-3 w-3 text-red-400" />;
+    }
+    
+    if (autosave.lastAutosaveAt) {
+      return <CheckCircle className="h-3 w-3 text-green-400" />;
+    }
+    
+    return <WifiOff className="h-3 w-3 text-gray-400" />;
+  };
+
+  const getStatusText = () => {
+    if (autosave.isAutosaving) {
+      return 'Saving...';
+    }
+    
+    if (autosave.error) {
+      return 'Save failed';
+    }
+    
+    if (autosave.lastAutosaveAt) {
+      return formatTimeAgo(autosave.lastAutosaveAt);
+    }
+    
+    return 'Not saved';
+  };
+
+  const getTooltipText = () => {
+    if (autosave.isAutosaving) {
+      return 'Auto-saving your changes...';
+    }
+    
+    if (autosave.error) {
+      return `Autosave failed: ${autosave.error}`;
+    }
+    
+    if (autosave.lastAutosaveAt) {
+      return `Last saved: ${autosave.lastAutosaveAt.toLocaleString()}`;
+    }
+    
+    return 'Changes will be auto-saved';
+  };
+
+  return (
+    <div 
+      className="flex items-center gap-1.5 text-xs text-gray-400 cursor-help"
+      title={getTooltipText()}
+    >
+      {getStatusIcon()}
+      <span className="hidden sm:inline">{getStatusText()}</span>
+    </div>
+  );
+};
 
 const ExportButton = ({ stateManager }: { stateManager: StateManager }) => {
   const { actions, exporting } = useDownloadState();
 
   // Debug: Log the exporting state
   console.log('ExportButton render - exporting state:', exporting);
+  console.log('ExportButton render - actions:', actions);
 
   const handleExport = () => {
     console.log('ExportButton clicked - starting export');

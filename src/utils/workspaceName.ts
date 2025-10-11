@@ -1,6 +1,6 @@
 /**
- * Generate a default workspace name in format: MMMdd-hhmm.1t
- * Example: Oct11-2150.1t (October 11, 21:50)
+ * Generate a default workspace name in format: MMMdd-hhmmss.1t
+ * Example: Oct11-215030.1t (October 11, 21:50:30)
  */
 export const generateDefaultWorkspaceName = (): string => {
   const now = new Date();
@@ -17,8 +17,13 @@ export const generateDefaultWorkspaceName = (): string => {
   // Get minutes (mm) - pad with zero if needed
   const minutes = now.getMinutes().toString().padStart(2, '0');
   
-  // Combine: MMM + dd + - + hh + mm + .1t
-  return `${month}${day}-${hours}${minutes}.1t`;
+  // Get seconds (ss) - pad with zero if needed
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+  
+  // Combine: MMM + dd + - + hh + mm + ss + .1t
+  const result = `${month}${day}-${hours}${minutes}${seconds}.1t`;
+  console.log('[WorkspaceName] Generated name:', result);
+  return result;
 };
 
 /**
