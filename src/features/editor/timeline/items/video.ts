@@ -83,6 +83,12 @@ class Video extends Trimmable {
  
 	constructor(props: VideoProps) {
 		super(props);
+		
+		// Debug: Log the props being passed to Video constructor
+		console.log('[Video] Constructor props:', props);
+		console.log('[Video] Metadata:', props.metadata);
+		console.log('[Video] PreviewUrl:', props.metadata?.previewUrl);
+		
 		this.id = props.id;
 		this.tScale = props.tScale;
 		this.objectCaching = false;
@@ -104,7 +110,8 @@ class Video extends Trimmable {
 		this.transparentCorners = false;
 		this.hasBorders = false;
 
-		this.previewUrl = props.metadata.previewUrl;
+		this.previewUrl = props.metadata?.previewUrl || "";
+		console.log('[Video] Set previewUrl to:', this.previewUrl);
 		this.initOffscreenCanvas();
 		this.initialize();
 	}
