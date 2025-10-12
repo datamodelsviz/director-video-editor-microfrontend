@@ -187,6 +187,8 @@ const VideoItem = ({
     },
   };
   console.log("🎬 VideoItem - original video:", video);
+  console.log("🎬 VideoItem - video.preview:", video.preview);
+  console.log("🎬 VideoItem - video.details:", video.details);
   console.log("🎬 VideoItem - dragData:", dragData);
 
   return (

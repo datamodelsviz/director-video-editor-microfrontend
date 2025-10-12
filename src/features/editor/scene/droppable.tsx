@@ -82,8 +82,23 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 			}
 			case AcceptedDropTypes.VIDEO:
 				console.log("🔍 handleDrop - processing VIDEO type");
-				dispatch(ADD_VIDEO, { 
-					payload: { ...draggedData, id: newId },
+				const videoSrc = draggedData?.details?.src;
+				if (!videoSrc) {
+					console.log("🔍 handleDrop - no src found in video draggedData");
+					return;
+				}
+				console.log("🔍 handleDrop - dispatching ADD_VIDEO with src:", videoSrc);
+				dispatch(ADD_VIDEO, {
+					payload: {
+						id: newId,
+						details: { src: videoSrc },
+						metadata: { previewUrl: draggedData?.metadata?.previewUrl },
+						duration: draggedData?.duration || 5000,
+						aspectRatio: draggedData?.aspectRatio || 1,
+						trim: { from: 0, to: draggedData?.duration || 5000 },
+						display: { from: 0, to: draggedData?.duration || 5000 },
+						playbackRate: 1,
+					},
 					options: {
 						resourceId: "main",
 						scaleMode: "fit",
