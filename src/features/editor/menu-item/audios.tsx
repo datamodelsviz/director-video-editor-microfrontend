@@ -180,7 +180,10 @@ const AudioItem = ({
 
   return (
     <Draggable
-      data={audio}
+      data={{
+        ...audio,
+        type: "audio",
+      }}
       renderCustomPreview={<div style={style} />}
       shouldDisplayPreview={shouldDisplayPreview}
     >

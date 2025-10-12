@@ -182,6 +182,7 @@ const VideoItem = ({
     <Draggable
       data={{
         ...video,
+        type: "video",
         metadata: {
           previewUrl: video.preview,
         },
