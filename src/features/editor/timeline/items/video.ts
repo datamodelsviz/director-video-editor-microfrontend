@@ -63,6 +63,7 @@ class Video extends Trimmable {
 	public thumbnailHeight = 40;
 	public thumbnailsList: { url: string; ts: number }[] = [];
 	public isFetchingThumbnails = false;
+	public isInitializing = true;
 	public thumbnailCache = new ThumbnailCache();
 
 	public currentFilmstrip: Filmstrip = EMPTY_FILMSTRIP;
@@ -73,6 +74,7 @@ class Video extends Trimmable {
 	private offscreenCtx: OffscreenCanvasRenderingContext2D | null = null;
 
 	private isDirty = true;
+	private renderTimeout: NodeJS.Timeout | null = null;
 
 	private fallbackSegmentIndex = 0;
 	private fallbackSegmentsCount = 0;
@@ -133,34 +135,63 @@ class Video extends Trimmable {
 	}
 
 	public async initialize() {
-		await this.loadFallbackThumbnail();
-
+		// Show immediate visual feedback with simple pattern
+		this.createImmediateFallbackPattern();
 		this.initDimensions();
 		this.onScrollChange({ scrollLeft: 0 });
-
 		this.canvas?.requestRenderAll();
 
-		this.createFallbackPattern();
-		await this.prepareAssets();
+		// Load fallback thumbnail in background (non-blocking)
+		this.loadFallbackThumbnail().then(() => {
+			// Create the full fallback pattern after thumbnail loads
+			this.createFallbackPattern();
+			this.isInitializing = false;
+			this.debouncedRender();
+		});
 
-		this.onScrollChange({ scrollLeft: 0 });
+		// Prepare assets in background (non-blocking)
+		this.prepareAssets().then(() => {
+			this.isInitializing = false;
+			this.onScrollChange({ scrollLeft: 0 });
+		});
 	}
 
 	public async prepareAssets() {
-		const file = await getFileFromUrl(this.src);
-		const stream = file.stream();
+		try {
+			// Set a timeout for file loading to prevent hanging
+			const filePromise = getFileFromUrl(this.src);
+			const timeoutPromise = new Promise((_, reject) => 
+				setTimeout(() => reject(new Error('File load timeout')), 5000)
+			);
+			
+			const file = await Promise.race([filePromise, timeoutPromise]) as any;
+			const stream = file.stream();
 
-		// Dynamically import MP4Clip only on the client side
-		if (typeof window !== "undefined") {
-			try {
-				const { MP4Clip } = await import("@designcombo/frames");
-				this.clip = new MP4Clip(stream);
-			} catch (error) {
-				console.warn("Failed to load MP4Clip:", error);
+			// Dynamically import MP4Clip only on the client side
+			if (typeof window !== "undefined") {
+				try {
+					// Set a timeout for MP4Clip import and initialization
+					const importPromise = import("@designcombo/frames");
+					const importTimeoutPromise = new Promise((_, reject) => 
+						setTimeout(() => reject(new Error('MP4Clip import timeout')), 3000)
+					);
+					
+					const { MP4Clip } = await Promise.race([importPromise, importTimeoutPromise]) as any;
+					this.clip = new MP4Clip(stream);
+					
+					// Mark as dirty to trigger re-render with new clip
+					this.isDirty = true;
+					this.debouncedRender();
+				} catch (error) {
+					console.warn("Failed to load MP4Clip:", error);
+					this.clip = null;
+				}
+			} else {
+				// Server-side rendering - skip MP4Clip initialization
 				this.clip = null;
 			}
-		} else {
-			// Server-side rendering - skip MP4Clip initialization
+		} catch (error) {
+			console.warn("Failed to prepare video assets:", error);
 			this.clip = null;
 		}
 	}
@@ -211,29 +242,58 @@ class Video extends Trimmable {
 		return new Promise<void>((resolve) => {
 			const img = new Image();
 			img.crossOrigin = "anonymous";
+			// Add cache busting but with shorter timeout for faster loading
 			img.src = `${fallbackThumbnail}?t=${Date.now()}`;
+			
+			// Set a timeout to prevent hanging
+			const timeout = setTimeout(() => {
+				console.warn(`Fallback thumbnail load timeout for: ${fallbackThumbnail}`);
+				resolve();
+			}, 3000); // 3 second timeout
+			
 			img.onload = () => {
-				// Create a temporary canvas to resize the image
-				const canvas = document.createElement("canvas");
-				const ctx = canvas.getContext("2d");
-				if (!ctx) return;
+				clearTimeout(timeout);
+				try {
+					// Create a temporary canvas to resize the image
+					const canvas = document.createElement("canvas");
+					const ctx = canvas.getContext("2d");
+					if (!ctx) {
+						resolve();
+						return;
+					}
 
-				// Calculate new width maintaining aspect ratio
-				const aspectRatio = img.width / img.height;
-				const targetHeight = 40;
-				const targetWidth = Math.round(targetHeight * aspectRatio);
-				// Set canvas size and draw resized image
-				canvas.height = targetHeight;
-				canvas.width = targetWidth;
-				ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+					// Calculate new width maintaining aspect ratio
+					const aspectRatio = img.width / img.height;
+					const targetHeight = 40;
+					const targetWidth = Math.round(targetHeight * aspectRatio);
+					
+					// Set canvas size and draw resized image
+					canvas.height = targetHeight;
+					canvas.width = targetWidth;
+					ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-				// Create new image from resized canvas
-				const resizedImg = new Image();
-				resizedImg.src = canvas.toDataURL();
-				// Update aspect ratio and cache the resized image
-				this.aspectRatio = aspectRatio;
-				this.thumbnailWidth = targetWidth;
-				this.thumbnailCache.setThumbnail("fallback", resizedImg);
+					// Create new image from resized canvas
+					const resizedImg = new Image();
+					resizedImg.src = canvas.toDataURL();
+					
+					// Update aspect ratio and cache the resized image
+					this.aspectRatio = aspectRatio;
+					this.thumbnailWidth = targetWidth;
+					this.thumbnailCache.setThumbnail("fallback", resizedImg);
+					
+					// Mark as dirty to trigger re-render
+					this.isDirty = true;
+					this.debouncedRender();
+					resolve();
+				} catch (error) {
+					console.warn("Error processing fallback thumbnail:", error);
+					resolve();
+				}
+			};
+			
+			img.onerror = () => {
+				clearTimeout(timeout);
+				console.warn(`Failed to load fallback thumbnail: ${fallbackThumbnail}`);
 				resolve();
 			};
 		});
@@ -250,6 +310,50 @@ class Video extends Trimmable {
 			const timeInFilmstripe = startTime + i * timePerThumbnail;
 			return Math.ceil(timeInFilmstripe / 1000);
 		});
+	}
+
+	private createImmediateFallbackPattern() {
+		const canvas = this.canvas;
+		if (!canvas) return;
+
+		// Create a simple immediate pattern for instant visual feedback
+		const patternCanvas = document.createElement("canvas");
+		patternCanvas.width = 40;
+		patternCanvas.height = 40;
+		const patternCtx = patternCanvas.getContext("2d");
+		if (!patternCtx) return;
+
+		// Draw a gradient background for better visual feedback
+		const gradient = patternCtx.createLinearGradient(0, 0, 40, 40);
+		gradient.addColorStop(0, "rgba(100, 100, 100, 0.2)");
+		gradient.addColorStop(1, "rgba(150, 150, 150, 0.3)");
+		patternCtx.fillStyle = gradient;
+		patternCtx.fillRect(0, 0, 40, 40);
+
+		// Draw play button with better visibility
+		patternCtx.fillStyle = "rgba(255, 255, 255, 0.9)";
+		patternCtx.beginPath();
+		patternCtx.moveTo(12, 8);
+		patternCtx.lineTo(12, 32);
+		patternCtx.lineTo(28, 20);
+		patternCtx.closePath();
+		patternCtx.fill();
+
+		// Add a subtle border
+		patternCtx.strokeStyle = "rgba(200, 200, 200, 0.5)";
+		patternCtx.lineWidth = 1;
+		patternCtx.strokeRect(0, 0, 40, 40);
+
+		// Create the pattern and apply it
+		const fillPattern = new Pattern({
+			source: patternCanvas,
+			repeat: "repeat",
+			offsetX: 0,
+		});
+
+		this.set("fill", fillPattern);
+		// Mark as dirty to ensure immediate rendering
+		this.isDirty = true;
 	}
 
 	private createFallbackPattern() {
@@ -368,10 +472,22 @@ class Video extends Trimmable {
 		ctx.rect(0, 0, this.width, this.height);
 		ctx.clip();
 
-		this.renderToOffscreen();
-		if (Math.floor(this.width) === 0) return;
-		if (!this.offscreenCanvas) return;
-		ctx.drawImage(this.offscreenCanvas, 0, 0);
+		// Show loading indicator if still initializing
+		if (this.isInitializing) {
+			ctx.fillStyle = "rgba(100, 100, 100, 0.1)";
+			ctx.fillRect(0, 0, this.width, this.height);
+			
+			// Draw loading text
+			ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+			ctx.font = "12px Arial";
+			ctx.textAlign = "center";
+			ctx.fillText("Loading...", this.width / 2, this.height / 2);
+		} else {
+			this.renderToOffscreen();
+			if (Math.floor(this.width) === 0) return;
+			if (!this.offscreenCanvas) return;
+			ctx.drawImage(this.offscreenCanvas, 0, 0);
+		}
 
 		ctx.restore();
 		// this.drawTextIdentity(ctx);
@@ -381,6 +497,16 @@ class Video extends Trimmable {
 	public setDuration(duration: number) {
 		this.duration = duration;
 		this.prevDuration = duration;
+	}
+
+	private debouncedRender() {
+		if (this.renderTimeout) {
+			clearTimeout(this.renderTimeout);
+		}
+		this.renderTimeout = setTimeout(() => {
+			this.canvas?.requestRenderAll();
+			this.renderTimeout = null;
+		}, 16); // ~60fps
 	}
 
 	public async setSrc(src: string) {
