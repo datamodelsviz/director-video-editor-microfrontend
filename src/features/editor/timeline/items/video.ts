@@ -141,6 +141,13 @@ class Video extends Trimmable {
 		this.onScrollChange({ scrollLeft: 0 });
 		this.canvas?.requestRenderAll();
 
+		// Set a timeout to ensure initialization completes even if operations hang
+		const initTimeout = setTimeout(() => {
+			console.warn('[Video] Initialization timeout, forcing completion');
+			this.isInitializing = false;
+			this.debouncedRender();
+		}, 10000); // 10 second timeout
+
 		// Load fallback thumbnail in background (non-blocking)
 		this.loadFallbackThumbnail().then(() => {
 			// Create the full fallback pattern after thumbnail loads
@@ -148,12 +155,24 @@ class Video extends Trimmable {
 			if (this.canvas && this.canvas.width > 0) {
 				this.createFallbackPattern();
 			}
+			clearTimeout(initTimeout);
+			this.isInitializing = false;
+			this.debouncedRender();
+		}).catch((error) => {
+			console.warn('[Video] Fallback thumbnail load failed:', error);
+			clearTimeout(initTimeout);
 			this.isInitializing = false;
 			this.debouncedRender();
 		});
 
 		// Prepare assets in background (non-blocking)
 		this.prepareAssets().then(() => {
+			clearTimeout(initTimeout);
+			this.isInitializing = false;
+			this.onScrollChange({ scrollLeft: 0 });
+		}).catch((error) => {
+			console.warn('[Video] Assets preparation failed:', error);
+			clearTimeout(initTimeout);
 			this.isInitializing = false;
 			this.onScrollChange({ scrollLeft: 0 });
 		});
@@ -240,7 +259,12 @@ class Video extends Trimmable {
 	// load fallback thumbnail, resize it and cache it
 	private async loadFallbackThumbnail() {
 		const fallbackThumbnail = this.previewUrl;
-		if (!fallbackThumbnail) return;
+		if (!fallbackThumbnail) {
+			console.warn('[Video] No previewUrl provided, skipping fallback thumbnail load');
+			return;
+		}
+		
+		console.log('[Video] Loading fallback thumbnail from:', fallbackThumbnail);
 
 		return new Promise<void>((resolve) => {
 			const img = new Image();
