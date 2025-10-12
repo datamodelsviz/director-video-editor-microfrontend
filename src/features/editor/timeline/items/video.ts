@@ -85,9 +85,10 @@ class Video extends Trimmable {
 		super(props);
 		
 		// Debug: Log the props being passed to Video constructor
-		console.log('[Video] Constructor props:', props);
-		console.log('[Video] Metadata:', props.metadata);
-		console.log('[Video] PreviewUrl:', props.metadata?.previewUrl);
+		console.log('🎬 [Video] Constructor called with props:', props);
+		console.log('🎬 [Video] Metadata:', props.metadata);
+		console.log('🎬 [Video] PreviewUrl:', props.metadata?.previewUrl);
+		console.log('🎬 [Video] Src:', props.src);
 		
 		this.id = props.id;
 		this.tScale = props.tScale;
@@ -266,12 +267,13 @@ class Video extends Trimmable {
 	// load fallback thumbnail, resize it and cache it
 	private async loadFallbackThumbnail() {
 		const fallbackThumbnail = this.previewUrl;
+		console.log('🎬 [Video] loadFallbackThumbnail called, previewUrl:', fallbackThumbnail);
 		if (!fallbackThumbnail) {
-			console.warn('[Video] No previewUrl provided, skipping fallback thumbnail load');
+			console.warn('🎬 [Video] No previewUrl provided, skipping fallback thumbnail load');
 			return;
 		}
 		
-		console.log('[Video] Loading fallback thumbnail from:', fallbackThumbnail);
+		console.log('🎬 [Video] Loading fallback thumbnail from:', fallbackThumbnail);
 
 		return new Promise<void>((resolve) => {
 			const img = new Image();
@@ -391,13 +393,18 @@ class Video extends Trimmable {
 	}
 
 	private createFallbackPattern() {
+		console.log('🎬 [Video] createFallbackPattern called');
 		const canvas = this.canvas;
-		if (!canvas) return;
+		if (!canvas) {
+			console.log('🎬 [Video] No canvas, returning');
+			return;
+		}
 
 		const canvasWidth = canvas.width;
+		console.log('🎬 [Video] Canvas width:', canvasWidth);
 		// Check if canvas has valid dimensions
 		if (canvasWidth <= 0) {
-			console.warn('[Video] Canvas width is 0, skipping fallback pattern creation');
+			console.warn('🎬 [Video] Canvas width is 0, skipping fallback pattern creation');
 			return;
 		}
 		
