@@ -82,11 +82,20 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 			}
 			case AcceptedDropTypes.VIDEO:
 				console.log("🔍 handleDrop - processing VIDEO type");
-				dispatch(ADD_VIDEO, { payload: { ...draggedData, id: newId } });
+				dispatch(ADD_VIDEO, { 
+					payload: { ...draggedData, id: newId },
+					options: {
+						resourceId: "main",
+						scaleMode: "fit",
+					},
+				});
 				break;
 			case AcceptedDropTypes.AUDIO:
 				console.log("🔍 handleDrop - processing AUDIO type");
-				dispatch(ADD_AUDIO, { payload: { ...draggedData, id: newId } });
+				dispatch(ADD_AUDIO, { 
+					payload: { ...draggedData, id: newId },
+					options: {},
+				});
 				break;
 			default:
 				console.log("🔍 handleDrop - unknown type:", draggedData.type);
