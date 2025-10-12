@@ -370,6 +370,15 @@ class Video extends Trimmable {
 			return;
 		}
 		
+		// Check if thumbnail dimensions are valid
+		if (this.thumbnailWidth <= 0 || this.thumbnailHeight <= 0) {
+			console.warn('[Video] Invalid thumbnail dimensions, skipping fallback pattern creation:', { 
+				width: this.thumbnailWidth, 
+				height: this.thumbnailHeight 
+			});
+			return;
+		}
+		
 		const maxPatternSize = 12000;
 		const fallbackSource = this.thumbnailCache.getThumbnail("fallback");
 
@@ -379,12 +388,18 @@ class Video extends Trimmable {
 		const totalWidthNeeded = Math.min(canvasWidth * 20, maxPatternSize);
 		const segmentsRequired = Math.ceil(totalWidthNeeded / this.segmentSize);
 		this.fallbackSegmentsCount = segmentsRequired;
-		const patternWidth = segmentsRequired * this.segmentSize;
+		const patternWidth = Math.max(segmentsRequired * this.segmentSize, this.thumbnailWidth); // Ensure minimum width
 
 		// Setup canvas dimensions
 		const offCanvas = document.createElement("canvas");
 		offCanvas.height = this.thumbnailHeight;
 		offCanvas.width = patternWidth;
+
+		// Validate canvas dimensions
+		if (offCanvas.width <= 0 || offCanvas.height <= 0) {
+			console.warn('[Video] Invalid canvas dimensions for fallback pattern:', { width: offCanvas.width, height: offCanvas.height });
+			return;
+		}
 
 		const context = offCanvas.getContext("2d");
 		if (!context) return;
