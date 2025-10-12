@@ -29,7 +29,8 @@ import { ADD_AUDIO, ADD_IMAGE, ADD_TEXT, ADD_VIDEO } from "@designcombo/state";
 import { SaveModal } from "@/components/SaveModal";
 import { LoadDropdown } from "@/components/LoadDropdown";
 import { useCompositionStore } from "./store/use-composition-store";
-import { generateDefaultWorkspaceName } from "../../utils/workspaceName";
+import { generateDefaultWorkspaceName, extractCreativeWord } from "../../utils/workspaceName";
+import { WorkspaceIcon } from "@/components/WorkspaceIcon";
 import { CheckCircle, Clock, AlertCircle, Wifi, WifiOff, Settings } from "lucide-react";
 // import { AutosaveSettings } from "@/components/AutosaveSettings";
 
@@ -503,7 +504,15 @@ export default function Navbar({
 
       {/* Center section - Workspace Name with Inline Edit */}
       <div className="flex h-14 items-center justify-center">
-        <div className="pointer-events-auto flex h-12 items-center">
+        <div className="pointer-events-auto flex h-12 items-center gap-2">
+          {/* Workspace Icon */}
+          {!isEditingTitle && title && (
+            <WorkspaceIcon 
+              word={extractCreativeWord(title)} 
+              className="flex-shrink-0"
+            />
+          )}
+          
           {isEditingTitle ? (
             <input
               ref={titleInputRef}

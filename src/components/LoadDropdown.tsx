@@ -8,7 +8,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { useCompositionStore } from '@/features/editor/store/use-composition-store';
-import { generateDefaultWorkspaceName } from '../utils/workspaceName';
+import { generateDefaultWorkspaceName, extractCreativeWord } from '../utils/workspaceName';
+import { WorkspaceIcon } from './WorkspaceIcon';
 
 interface LoadDropdownProps {
   onLoad: (composition: any) => Promise<void>;
@@ -80,11 +81,17 @@ export function LoadDropdown({ onLoad, onNewProject }: LoadDropdownProps) {
             <DropdownMenuItem
               key={composition.id}
               onClick={() => handleLoad(composition.id)}
-              className="flex flex-col items-start p-3"
+              className="flex items-start gap-3 p-3"
             >
-              <div className="font-medium text-sm">{composition.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {formatDate(composition.updated_at)} • {Math.round(composition.duration / 1000)}s
+              <WorkspaceIcon 
+                word={extractCreativeWord(composition.name)} 
+                className="flex-shrink-0 mt-0.5"
+              />
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <div className="font-medium text-sm truncate w-full">{composition.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {formatDate(composition.updated_at)} • {Math.round(composition.duration / 1000)}s
+                </div>
               </div>
             </DropdownMenuItem>
           ))
