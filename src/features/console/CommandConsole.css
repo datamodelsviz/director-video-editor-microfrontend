@@ -1,0 +1,44 @@
+/* Command Console Scrollbar Styles - AGGRESSIVE VISIBILITY */
+.console-scrollbar {
+  scrollbar-width: auto !important;
+  scrollbar-color: #60a5fa #27272a !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+}
+
+/* Webkit scrollbar styles for Chrome/Safari - BRIGHT AND VISIBLE */
+.console-scrollbar::-webkit-scrollbar {
+  width: 16px !important;
+  height: 16px !important;
+  -webkit-appearance: none !important;
+  background: #27272a !important;
+}
+
+.console-scrollbar::-webkit-scrollbar-track {
+  background: #27272a !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.console-scrollbar::-webkit-scrollbar-thumb {
+  background: #60a5fa !important;
+  border-radius: 8px !important;
+  border: 3px solid #27272a !important;
+  min-height: 40px !important;
+  box-shadow: 0 0 6px rgba(96, 165, 250, 0.5) !important;
+}
+
+.console-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6 !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8) !important;
+}
+
+.console-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #2563eb !important;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 1) !important;
+}
+
+.console-scrollbar::-webkit-scrollbar-corner {
+  background: #27272a !important;
+}

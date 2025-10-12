@@ -7,6 +7,7 @@ import { IImage } from "@designcombo/types";
 import React, { useState } from "react";
 import { useIsDraggingOverTimeline } from "../hooks/is-dragging-over-timeline";
 import { ADD_IMAGE } from "@designcombo/state";
+import { dispatchWithLogging } from "../../../commands/DispatchWrapper";
 import { useImagesData } from "../data/use-images-data";
 import { Plus } from "lucide-react";
 
@@ -25,21 +26,18 @@ export const Images = () => {
 
   const handleAddImage = (payload: Partial<IImage>) => {
     const id = generateId();
-    dispatch(ADD_IMAGE, {
-      payload: {
-        id,
-        details: {
-          src: payload.details?.src,
-        },
-        metadata: {
-          previewUrl: (payload as any)?.metadata?.previewUrl,
-        },
+    dispatchWithLogging(ADD_IMAGE, {
+      id,
+      details: {
+        src: payload.details?.src,
       },
-      options: {
-        resourceId: "image",
-        scaleMode: "fit",
+      metadata: {
+        previewUrl: (payload as any)?.metadata?.previewUrl,
       },
-    });
+    }, {
+      resourceId: "image",
+      scaleMode: "fit",
+    }, 'ui', 'Images');
   };
 
   // Show skeleton loaders while API is loading

@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VIDEOS } from "../data/video";
 import { dispatch } from "@designcombo/events";
 import { ADD_VIDEO } from "@designcombo/state";
+import { dispatchWithLogging } from "../../../commands/DispatchWrapper";
 import { generateId } from "@designcombo/timeline";
 import { IVideo } from "@designcombo/types";
 import React, { useState } from "react";
@@ -41,13 +42,10 @@ export const Videos = () => {
   const { videos, videosBySource, sources, loading, error } = useVideosData();
 
   const handleAddVideo = (payload: Partial<IVideo>) => {
-    dispatch(ADD_VIDEO, {
-      payload,
-      options: {
-        resourceId: "main",
-        scaleMode: "fit",
-      },
-    });
+    dispatchWithLogging(ADD_VIDEO, payload, {
+      resourceId: "main",
+      scaleMode: "fit",
+    }, 'ui', 'Videos');
   };
 
   // Show skeleton loaders while API is loading

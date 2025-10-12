@@ -11,7 +11,7 @@ export type IMenuItem =
   | "texts"
   | "captions";
 
-export type RightDrawerContent = 'properties' | 'controls' | 'settings' | null;
+export type RightDrawerContent = 'properties' | 'controls' | 'settings' | 'console' | null;
 
 export interface ILayoutState {
   cropTarget: ITrackItem | null;

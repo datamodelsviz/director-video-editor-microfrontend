@@ -11,6 +11,7 @@ import Volume from "./common/volume";
 import React, { useEffect, useState } from "react";
 import { dispatch } from "@designcombo/events";
 import { EDIT_OBJECT } from "@designcombo/state";
+import { dispatchWithLogging } from "../../../commands/DispatchWrapper";
 import Speed from "./common/speed";
 import useLayoutStore from "../store/use-layout-store";
 import { Label } from "@/components/ui/label";
@@ -26,16 +27,14 @@ const BasicVideo = ({
 	const [properties, setProperties] = useState(trackItem);
 	const { setCropTarget } = useLayoutStore();
     const handleChangeVolume = (v: number) => {
-		dispatch(EDIT_OBJECT, {
-			payload: {
-				[trackItem.id]: {
-					details: {
-                        // store as 0–1 in payload
-                        volume: v / 100,
-					},
+		dispatchWithLogging(EDIT_OBJECT, {
+			[trackItem.id]: {
+				details: {
+                    // store as 0–1 in payload
+                    volume: v / 100,
 				},
 			},
-		});
+		}, undefined, 'ui', 'BasicVideo');
 
 		setProperties((prev) => {
 			return {
@@ -92,15 +91,13 @@ const BasicVideo = ({
 	};
 
 	const handleChangeOpacity = (v: number) => {
-		dispatch(EDIT_OBJECT, {
-			payload: {
-				[trackItem.id]: {
-					details: {
-						opacity: v,
-					},
+		dispatchWithLogging(EDIT_OBJECT, {
+			[trackItem.id]: {
+				details: {
+					opacity: v,
 				},
 			},
-		});
+		}, undefined, 'ui', 'BasicVideo');
 		setProperties((prev) => {
 			return {
 				...prev,
@@ -252,19 +249,17 @@ const BasicVideo = ({
 	];
 
 	return (
-		<div className="flex flex-1 flex-col">
+		<div className="flex flex-col">
 			<div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
 				Video
 			</div>
-			<ScrollArea className="h-full">
-				<div className="flex flex-col gap-2 px-4 py-4">
-					{components
-						.filter((comp) => showAll || comp.key === type)
-						.map((comp) => (
-							<React.Fragment key={comp.key}>{comp.component}</React.Fragment>
-						))}
-				</div>
-			</ScrollArea>
+			<div className="flex flex-col gap-2 px-4 py-4">
+				{components
+					.filter((comp) => showAll || comp.key === type)
+					.map((comp) => (
+						<React.Fragment key={comp.key}>{comp.component}</React.Fragment>
+					))}
+			</div>
 		</div>
 	);
 };

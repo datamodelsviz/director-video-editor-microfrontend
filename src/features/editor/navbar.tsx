@@ -31,7 +31,7 @@ import { LoadDropdown } from "@/components/LoadDropdown";
 import { useCompositionStore } from "./store/use-composition-store";
 import { generateDefaultWorkspaceName, extractCreativeWord } from "../../utils/workspaceName";
 import { WorkspaceIcon } from "@/components/WorkspaceIcon";
-import { CheckCircle, Clock, AlertCircle, Wifi, WifiOff, Settings } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, Wifi, WifiOff, Settings, Terminal } from "lucide-react";
 // import { AutosaveSettings } from "@/components/AutosaveSettings";
 
 export default function Navbar({
@@ -59,6 +59,9 @@ export default function Navbar({
   const [, setUpdateTrigger] = useState(0);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  
+  // Console toggle state
+  const { isRightDrawerOpen, rightDrawerContent, setIsRightDrawerOpen, setRightDrawerContent } = useLayoutStore();
 
   // Helper function to format time ago
   const formatTimeAgo = (date: Date | null) => {
@@ -110,6 +113,16 @@ export default function Navbar({
   };
 
   const handleCreateProject = async () => {};
+
+  // Console toggle handler
+  const handleConsoleToggle = () => {
+    if (isRightDrawerOpen && rightDrawerContent === 'console') {
+      setIsRightDrawerOpen(false);
+    } else {
+      setRightDrawerContent('console');
+      setIsRightDrawerOpen(true);
+    }
+  };
 
   // Create a debounced function for setting the project name
   const debouncedSetProjectName = useCallback(
@@ -564,6 +577,22 @@ export default function Navbar({
               <ShareIcon width={18} /> Share
             </Button>
           )}
+          
+          {/* Console Toggle Button */}
+          <Button
+            onClick={handleConsoleToggle}
+            className={`flex h-8 w-8 items-center justify-center border border-border transition-all duration-200 ${
+              isRightDrawerOpen && rightDrawerContent === 'console' 
+                ? 'bg-blue-600 text-white border-blue-600' 
+                : 'hover:bg-background-subtle'
+            }`}
+            variant="outline"
+            size="icon"
+            title="Toggle Command Console"
+          >
+            <Terminal className="h-4 w-4" />
+          </Button>
+          
           <ExportButton stateManager={stateManager} />
           
           {showDiscordButton && (

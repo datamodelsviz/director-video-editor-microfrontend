@@ -16,6 +16,7 @@ import BasicText from "../control-item/basic-text";
 import BasicImage from "../control-item/basic-image";
 import BasicVideo from "../control-item/basic-video";
 import BasicAudio from "../control-item/basic-audio";
+import { CommandConsole } from "../../console/CommandConsole";
 import { subject, filter } from "@designcombo/events";
 import { LAYER_PREFIX, LAYER_SELECTION } from "@designcombo/state";
 
@@ -181,7 +182,7 @@ export const RightDrawer = () => {
   if (!isRightDrawerOpen) return null;
 
   const getDrawerTitle = () => {
-    if (trackItem) {
+    if (trackItem && rightDrawerContent === 'properties') {
       return `${trackItem.type.charAt(0).toUpperCase() + trackItem.type.slice(1)} Properties`;
     }
     
@@ -192,6 +193,8 @@ export const RightDrawer = () => {
         return 'Controls';
       case 'settings':
         return 'Settings';
+      case 'console':
+        return 'Command Console';
       default:
         return 'Properties';
     }
@@ -200,6 +203,17 @@ export const RightDrawer = () => {
   const getDrawerContent = () => {
     console.log('RightDrawer: getDrawerContent called with trackItem:', trackItem);
     console.log('RightDrawer: trackItem type:', trackItem?.type);
+    console.log('RightDrawer: rightDrawerContent:', rightDrawerContent);
+    
+    // Handle console content
+    if (rightDrawerContent === 'console') {
+      return (
+        <CommandConsole 
+          isVisible={true} 
+          onClose={() => setIsRightDrawerOpen(false)} 
+        />
+      );
+    }
     
     if (!trackItem) {
       return (
@@ -229,16 +243,16 @@ export const RightDrawer = () => {
   };
 
   return (
-    <div className="fixed right-0 top-[58px] h-[calc(100vh-58px)] w-80 bg-zinc-900 border-l border-border/80 shadow-2xl transform transition-transform duration-300 ease-out z-[100]">
+    <div className="fixed right-0 top-[58px] h-[calc(100vh-58px)] w-80 bg-zinc-900 border-l border-border/80 shadow-2xl transform transition-transform duration-300 ease-out z-[100] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/80 bg-zinc-900">
+      <div className="flex items-center justify-between p-4 border-b border-border/80 bg-zinc-900 flex-none">
         <h3 className="font-medium text-sm">
           {getDrawerTitle()}
         </h3>
       </div>
       
       {/* Content */}
-      <div className="flex-1 overflow-y-auto bg-zinc-900 pointer-events-auto">
+      <div className="flex-1 bg-zinc-900 pointer-events-auto overflow-y-auto" style={{ minHeight: 0 }}>
         {getDrawerContent()}
       </div>
     </div>
