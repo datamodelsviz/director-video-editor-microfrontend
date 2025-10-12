@@ -144,7 +144,10 @@ class Video extends Trimmable {
 		// Load fallback thumbnail in background (non-blocking)
 		this.loadFallbackThumbnail().then(() => {
 			// Create the full fallback pattern after thumbnail loads
-			this.createFallbackPattern();
+			// Only create if canvas has valid dimensions
+			if (this.canvas && this.canvas.width > 0) {
+				this.createFallbackPattern();
+			}
 			this.isInitializing = false;
 			this.debouncedRender();
 		});
@@ -361,6 +364,12 @@ class Video extends Trimmable {
 		if (!canvas) return;
 
 		const canvasWidth = canvas.width;
+		// Check if canvas has valid dimensions
+		if (canvasWidth <= 0) {
+			console.warn('[Video] Canvas width is 0, skipping fallback pattern creation');
+			return;
+		}
+		
 		const maxPatternSize = 12000;
 		const fallbackSource = this.thumbnailCache.getThumbnail("fallback");
 
@@ -634,6 +643,11 @@ class Video extends Trimmable {
 		scrollLeft: number;
 		force?: boolean;
 	}) {
+		// Ensure fallback pattern is created if canvas is now properly sized
+		if (this.canvas && this.canvas.width > 0 && this.thumbnailCache.getThumbnail("fallback") && !this.fill) {
+			this.createFallbackPattern();
+		}
+
 		const offscreenWidth = this.calculateOffscreenWidth({ scrollLeft });
 		const trimFromSize = timeMsToUnits(
 			this.trim.from,
