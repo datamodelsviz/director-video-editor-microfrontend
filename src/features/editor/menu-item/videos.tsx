@@ -178,15 +178,20 @@ const VideoItem = ({
     }
   };
 
+  // Debug: Log the video data being passed to Draggable
+  const dragData = {
+    ...video,
+    type: "video", // Ensure type is set for drag and drop
+    metadata: {
+      previewUrl: video.preview,
+    },
+  };
+  console.log("🎬 VideoItem - original video:", video);
+  console.log("🎬 VideoItem - dragData:", dragData);
+
   return (
     <Draggable
-      data={{
-        ...video,
-        type: "video",
-        metadata: {
-          previewUrl: video.preview,
-        },
-      }}
+      data={dragData}
       renderCustomPreview={<div style={style} className="draggable" />}
       shouldDisplayPreview={shouldDisplayPreview}
     >

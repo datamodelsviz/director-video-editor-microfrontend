@@ -18,9 +18,13 @@ const Draggable: React.FC<DraggableProps> = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const handleDragStart = (e: React.DragEvent<HTMLElement>) => {
+    console.log("🚀 Draggable - handleDragStart called with data:", data);
     setIsDragging(true);
     e.dataTransfer.setDragImage(new Image(), 0, 0); // Hides default preview
-    e.dataTransfer.setData(JSON.stringify(data), JSON.stringify(data));
+    
+    const dataString = JSON.stringify(data);
+    console.log("🚀 Draggable - setting dataTransfer data:", dataString);
+    e.dataTransfer.setData(dataString, dataString);
     e.dataTransfer.effectAllowed = "move";
 
     setPosition({

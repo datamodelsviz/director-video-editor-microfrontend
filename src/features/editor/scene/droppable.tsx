@@ -24,10 +24,15 @@ interface DroppableAreaProps {
 
 const parseDraggedDataFromTypes = (dt: DataTransfer): DraggedData | null => {
 	console.log("🔍 parseDraggedDataFromTypes - dataTransfer types:", Array.from(dt.types));
+	console.log("🔍 parseDraggedDataFromTypes - AcceptedDropTypes:", Object.values(AcceptedDropTypes));
+	
 	for (const t of Array.from(dt.types)) {
 		try {
 			const maybe = JSON.parse(t);
 			console.log("🔍 parseDraggedDataFromTypes - parsed type:", maybe);
+			console.log("🔍 parseDraggedDataFromTypes - maybe.type:", maybe?.type);
+			console.log("🔍 parseDraggedDataFromTypes - includes check:", Object.values(AcceptedDropTypes).includes(maybe?.type));
+			
 			if (
 				maybe &&
 				typeof maybe === "object" &&
