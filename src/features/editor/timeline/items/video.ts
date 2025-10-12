@@ -84,11 +84,6 @@ class Video extends Trimmable {
 	constructor(props: VideoProps) {
 		super(props);
 		
-		// Debug: Log the props being passed to Video constructor
-		console.log('🎬 [Video] Constructor called with props:', props);
-		console.log('🎬 [Video] Metadata:', props.metadata);
-		console.log('🎬 [Video] PreviewUrl:', props.metadata?.previewUrl);
-		console.log('🎬 [Video] Src:', props.src);
 		
 		this.id = props.id;
 		this.tScale = props.tScale;
@@ -103,7 +98,7 @@ class Video extends Trimmable {
 		this.borderOpacityWhenMoving = 1;
 		this.metadata = props.metadata;
 
-		this.aspectRatio = props.aspectRatio;
+		this.aspectRatio = props.aspectRatio || 1; // Default to 1:1 if not provided
 
 		this.src = props.src;
 		this.strokeWidth = 0;
@@ -111,8 +106,8 @@ class Video extends Trimmable {
 		this.transparentCorners = false;
 		this.hasBorders = false;
 
-		this.previewUrl = props.metadata?.previewUrl || "";
-		console.log('[Video] Set previewUrl to:', this.previewUrl);
+		// Try to get previewUrl from metadata, or fall back to preview property
+		this.previewUrl = props.metadata?.previewUrl || (props as any).preview || "";
 		this.initOffscreenCanvas();
 		this.initialize();
 	}
@@ -151,7 +146,6 @@ class Video extends Trimmable {
 
 		// Set a timeout to ensure initialization completes even if operations hang
 		const initTimeout = setTimeout(() => {
-			console.warn('[Video] Initialization timeout, forcing completion');
 			this.isInitializing = false;
 			this.debouncedRender();
 		}, 10000); // 10 second timeout
@@ -167,7 +161,6 @@ class Video extends Trimmable {
 			this.isInitializing = false;
 			this.debouncedRender();
 		}).catch((error) => {
-			console.warn('[Video] Fallback thumbnail load failed:', error);
 			clearTimeout(initTimeout);
 			this.isInitializing = false;
 			this.debouncedRender();
@@ -179,7 +172,6 @@ class Video extends Trimmable {
 			this.isInitializing = false;
 			this.onScrollChange({ scrollLeft: 0 });
 		}).catch((error) => {
-			console.warn('[Video] Assets preparation failed:', error);
 			clearTimeout(initTimeout);
 			this.isInitializing = false;
 			this.onScrollChange({ scrollLeft: 0 });
@@ -267,13 +259,9 @@ class Video extends Trimmable {
 	// load fallback thumbnail, resize it and cache it
 	private async loadFallbackThumbnail() {
 		const fallbackThumbnail = this.previewUrl;
-		console.log('🎬 [Video] loadFallbackThumbnail called, previewUrl:', fallbackThumbnail);
 		if (!fallbackThumbnail) {
-			console.warn('🎬 [Video] No previewUrl provided, skipping fallback thumbnail load');
 			return;
 		}
-		
-		console.log('🎬 [Video] Loading fallback thumbnail from:', fallbackThumbnail);
 
 		return new Promise<void>((resolve) => {
 			const img = new Image();
@@ -283,7 +271,6 @@ class Video extends Trimmable {
 			
 			// Set a timeout to prevent hanging
 			const timeout = setTimeout(() => {
-				console.warn(`Fallback thumbnail load timeout for: ${fallbackThumbnail}`);
 				resolve();
 			}, 3000); // 3 second timeout
 			
@@ -322,14 +309,12 @@ class Video extends Trimmable {
 					this.debouncedRender();
 					resolve();
 				} catch (error) {
-					console.warn("Error processing fallback thumbnail:", error);
 					resolve();
 				}
 			};
 			
 			img.onerror = () => {
 				clearTimeout(timeout);
-				console.warn(`Failed to load fallback thumbnail: ${fallbackThumbnail}`);
 				resolve();
 			};
 		});
@@ -393,27 +378,17 @@ class Video extends Trimmable {
 	}
 
 	private createFallbackPattern() {
-		console.log('🎬 [Video] createFallbackPattern called');
 		const canvas = this.canvas;
-		if (!canvas) {
-			console.log('🎬 [Video] No canvas, returning');
-			return;
-		}
+		if (!canvas) return;
 
 		const canvasWidth = canvas.width;
-		console.log('🎬 [Video] Canvas width:', canvasWidth);
 		// Check if canvas has valid dimensions
 		if (canvasWidth <= 0) {
-			console.warn('🎬 [Video] Canvas width is 0, skipping fallback pattern creation');
 			return;
 		}
 		
 		// Check if thumbnail dimensions are valid
 		if (this.thumbnailWidth <= 0 || this.thumbnailHeight <= 0) {
-			console.warn('[Video] Invalid thumbnail dimensions, skipping fallback pattern creation:', { 
-				width: this.thumbnailWidth, 
-				height: this.thumbnailHeight 
-			});
 			return;
 		}
 		
@@ -435,7 +410,6 @@ class Video extends Trimmable {
 
 		// Validate canvas dimensions
 		if (offCanvas.width <= 0 || offCanvas.height <= 0) {
-			console.warn('[Video] Invalid canvas dimensions for fallback pattern:', { width: offCanvas.width, height: offCanvas.height });
 			return;
 		}
 

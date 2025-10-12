@@ -41,9 +41,6 @@ export const Videos = () => {
   const { videos, videosBySource, sources, loading, error } = useVideosData();
 
   const handleAddVideo = (payload: Partial<IVideo>) => {
-    console.log("🎬 [Videos] handleAddVideo called with payload:", payload);
-    // payload.details.src = "https://cdn.designcombo.dev/videos/timer-20s.mp4";
-    console.log("🎬 [Videos] dispatching ADD_VIDEO");
     dispatch(ADD_VIDEO, {
       payload,
       options: {
@@ -167,14 +164,12 @@ const VideoItem = ({
   );
 
   const handleVideoAdd = async (payload: Partial<IVideo>) => {
-    console.log("🎬 [VideoItem] handleVideoAdd called with payload:", payload);
     if (isAdding) return; // Prevent multiple clicks
     
     setIsAdding(true);
     try {
       // Simulate a small delay to show the loading state
       await new Promise(resolve => setTimeout(resolve, 400));
-      console.log("🎬 [VideoItem] calling handleAddImage");
       handleAddImage(payload);
     } finally {
       // Keep loading state for a bit longer to show completion
@@ -182,7 +177,6 @@ const VideoItem = ({
     }
   };
 
-  // Debug: Log the video data being passed to Draggable
   const dragData = {
     ...video,
     type: "video", // Ensure type is set for drag and drop
@@ -190,10 +184,6 @@ const VideoItem = ({
       previewUrl: video.preview,
     },
   };
-  console.log("🎬 VideoItem - original video:", video);
-  console.log("🎬 VideoItem - video.preview:", video.preview);
-  console.log("🎬 VideoItem - video.details:", video.details);
-  console.log("🎬 VideoItem - dragData:", dragData);
 
   return (
     <Draggable
