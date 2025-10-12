@@ -119,11 +119,20 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 
 	const onDragEnter = useCallback(
 		(e: React.DragEvent<HTMLDivElement>) => {
+			console.log("🔍 onDragEnter - event triggered");
 			e.preventDefault();
 			try {
 				const draggedData = parseDraggedDataFromTypes(e.dataTransfer);
-				if (!draggedData) return;
-				if (!Object.values(AcceptedDropTypes).includes(draggedData.type)) return;
+				console.log("🔍 onDragEnter - parsed draggedData:", draggedData);
+				if (!draggedData) {
+					console.log("🔍 onDragEnter - no draggedData found");
+					return;
+				}
+				if (!Object.values(AcceptedDropTypes).includes(draggedData.type)) {
+					console.log("🔍 onDragEnter - type not accepted:", draggedData.type);
+					return;
+				}
+				console.log("🔍 onDragEnter - setting drag state to true");
 				setIsDraggingOver(true);
 				setIsPointerInside(true);
 				onDragStateChange?.(true);
@@ -147,14 +156,23 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 
 	const onDrop = useCallback(
 		(e: React.DragEvent<HTMLDivElement>) => {
-			if (!isDraggingOver) return;
+			console.log("🔍 onDrop - event triggered, isDraggingOver:", isDraggingOver);
+			if (!isDraggingOver) {
+				console.log("🔍 onDrop - not dragging over, returning");
+				return;
+			}
 			e.preventDefault();
 			setIsDraggingOver(false);
 			onDragStateChange?.(false);
 
 			try {
 				const draggedData = parseDraggedDataFromTypes(e.dataTransfer);
-				if (!draggedData) return;
+				console.log("🔍 onDrop - parsed draggedData:", draggedData);
+				if (!draggedData) {
+					console.log("🔍 onDrop - no draggedData found");
+					return;
+				}
+				console.log("🔍 onDrop - calling handleDrop");
 				handleDrop(draggedData);
 			} catch (error) {
 				console.error("Error parsing dropped data:", error);
