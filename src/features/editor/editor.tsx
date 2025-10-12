@@ -17,6 +17,7 @@ import { SECONDARY_FONT, SECONDARY_FONT_URL } from "./constants/constants";
 import MenuList from "./menu-list";
 import { MenuItem } from "./menu-item";
 import CropModal from "./crop-modal/crop-modal";
+import HorizontalMediaToolbar from "./horizontal-media-toolbar";
 import useDataState from "./store/use-data-state";
 import { FONTS } from "./data/fonts";
 import FloatingControl from "./control-item/floating-controls/floating-control";
@@ -144,28 +145,28 @@ const Editor = () => {
         showDiscordButton={false}
         autosave={autosave}
       />
+      
+      {/* Horizontal Media Toolbar */}
+      <HorizontalMediaToolbar />
+      
+      {/* Floating panel - appears on click of toolbar buttons */}
+      <div className="relative">
+        <div className={`floating-panel fixed left-4 top-[120px] z-[9999] transition-all duration-200 ${
+          isSidebarHovered ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}>
+          <div className="bg-zinc-900 border border-border/80 rounded-lg shadow-xl min-w-[280px] max-w-[320px] h-[calc(100vh-140px)] overflow-hidden">
+            <div className="h-full overflow-y-auto">
+              <MenuItem />
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div className="flex flex-1">
         <ResizablePanelGroup style={{ flex: 1 }} direction="vertical">
           <ResizablePanel className="relative" defaultSize={70}>
             <FloatingControl />
             <div className="flex h-full flex-1">
-              <div className="sidebar-container bg-sidebar flex flex-none">
-                <MenuList />
-              </div>
-              
-              {/* Floating panel - appears on click of sidebar icons */}
-              <div className="relative">
-                <div className={`floating-panel fixed left-16 top-[58px] z-[9999] transition-all duration-200 ${
-                  isSidebarHovered ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-                }`}>
-                  <div className="bg-zinc-900 border border-border/80 rounded-lg shadow-xl min-w-[280px] max-w-[320px] h-[calc(100vh-80px)] overflow-hidden">
-                    <div className="h-full overflow-y-auto">
-                      <MenuItem />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
               <div
                 style={{
                   width: "100%",

@@ -25,6 +25,8 @@ interface CompositionStore {
   markSaved: () => void;
   clearError: () => void;
   autosaveComposition: (data: any) => Promise<Composition | null>;
+  resetCurrentComposition: () => void;
+  createNewWorkspace: () => void;
 }
 
 export const useCompositionStore = create<CompositionStore>((set, get) => ({
