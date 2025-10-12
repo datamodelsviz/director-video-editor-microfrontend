@@ -186,8 +186,6 @@ const Header = () => {
 							<SquareSplitHorizontal size={15} />
 						</Button>
 
-						{/* Aspect Ratio Button */}
-						<ResizeVideo />
 					</div>
 					<div className="flex items-center justify-center">
 						<div>
@@ -307,127 +305,6 @@ const ZoomControl = ({
 				>
 					<ZoomIn size={16} />
 				</Button>
-			</div>
-		</div>
-	);
-};
-
-// ResizeVideo component for aspect ratio control
-interface ResizeOptionProps {
-	label: string;
-	icon: string;
-	value: ResizeValue;
-	description: string;
-}
-
-interface ResizeValue {
-	width: number;
-	height: number;
-	name: string;
-}
-
-const RESIZE_OPTIONS: ResizeOptionProps[] = [
-	{
-		label: "16:9",
-		icon: "landscape",
-		description: "YouTube ads",
-		value: {
-			width: 1920,
-			height: 1080,
-			name: "16:9",
-		},
-	},
-	{
-		label: "9:16",
-		icon: "portrait",
-		description: "TikTok, YouTube Shorts",
-		value: {
-			width: 1080,
-			height: 1920,
-			name: "9:16",
-		},
-	},
-	{
-		label: "1:1",
-		icon: "square",
-		description: "Instagram, Facebook posts",
-		value: {
-			width: 1080,
-			height: 1080,
-			name: "1:1",
-		},
-	},
-];
-
-const ResizeVideo = () => {
-	const [open, setOpen] = useState(false);
-	const [currentAspectRatio, setCurrentAspectRatio] = useState("9:16");
-	
-	const handleResize = (options: ResizeValue) => {
-		dispatch(DESIGN_RESIZE, {
-			payload: {
-				...options,
-			},
-		});
-		// Update current aspect ratio display
-		setCurrentAspectRatio(options.name);
-		// Close the popover after selection
-		setOpen(false);
-	};
-	
-	// Get the current aspect ratio option to display its icon
-	const currentOption = RESIZE_OPTIONS.find(option => option.value.name === currentAspectRatio) || RESIZE_OPTIONS[1]; // Default to 9:16
-	const CurrentIcon = Icons[currentOption.icon as "text"];
-	
-	return (
-		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger asChild>
-				<Button 
-					className="gap-2 border border-border" 
-					variant="outline"
-					size="icon"
-					title="Aspect Ratio"
-				>
-					<CurrentIcon className="h-4 w-4" />
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent className="z-[250] w-60 px-2.5 py-3">
-				<div className="text-sm">
-					{RESIZE_OPTIONS.map((option, index) => (
-						<ResizeOption
-							key={index}
-							label={option.label}
-							icon={option.icon}
-							value={option.value}
-							handleResize={handleResize}
-							description={option.description}
-						/>
-					))}
-				</div>
-			</PopoverContent>
-		</Popover>
-	);
-};
-
-const ResizeOption = ({
-	label,
-	icon,
-	value,
-	description,
-	handleResize,
-}: ResizeOptionProps & { handleResize: (payload: ResizeValue) => void }) => {
-	const Icon = Icons[icon as "text"];
-	return (
-		<div
-			onClick={() => handleResize(value)}
-			className="flex cursor-pointer items-center rounded-md p-2 hover:bg-zinc-50/10"
-		>
-			<div className="w-8 text-muted-foreground">
-				<Icon size={20} />
-			</div>
-			<div>
-				<div>{label}</div>
-				<div className="text-xs text-muted-foreground">{description}</div>
 			</div>
 		</div>
 	);

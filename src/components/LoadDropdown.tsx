@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown, Loader2, FolderOpen } from 'lucide-react';
 import { useCompositionStore } from '@/features/editor/store/use-composition-store';
 import { generateDefaultWorkspaceName, extractCreativeWord } from '../utils/workspaceName';
 import { WorkspaceIcon } from './WorkspaceIcon';
@@ -55,18 +55,16 @@ export function LoadDropdown({ onLoad, onNewProject }: LoadDropdownProps) {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          className="flex h-8 gap-1 border border-border"
+          className="flex h-8 w-8 items-center justify-center border border-border"
           variant="outline"
+          size="icon"
           disabled={isLoading}
-          title="Switch Workspace"
+          title="Open Workspace"
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <>
-              Open
-              <ChevronDown className="h-4 w-4" />
-            </>
+            <FolderOpen className="h-4 w-4" />
           )}
         </Button>
       </DropdownMenuTrigger>

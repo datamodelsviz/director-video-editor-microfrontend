@@ -479,6 +479,9 @@ export default function Navbar({
           >
             <CloudUpload className="h-4 w-4" />
           </Button>
+          
+          {/* Aspect Ratio Button */}
+          <ResizeVideo />
         </div>
         
         {/* Undo/Redo buttons - hidden for now */}
@@ -812,6 +815,7 @@ const RESIZE_OPTIONS: ResizeOptionProps[] = [
 
 const ResizeVideo = () => {
   const [open, setOpen] = useState(false);
+  const [currentAspectRatio, setCurrentAspectRatio] = useState("9:16");
   
   const handleResize = (options: ResizeValue) => {
     dispatch(DESIGN_RESIZE, {
@@ -819,16 +823,26 @@ const ResizeVideo = () => {
         ...options,
       },
     });
+    // Update current aspect ratio display
+    setCurrentAspectRatio(options.name);
     // Close the popover after selection
     setOpen(false);
   };
   
+  // Get the current aspect ratio option to display its icon
+  const currentOption = RESIZE_OPTIONS.find(option => option.value.name === currentAspectRatio) || RESIZE_OPTIONS[1]; // Default to 9:16
+  const CurrentIcon = Icons[currentOption.icon as "text"];
+  
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button className="z-10 gap-2 border border-border" variant="outline">
-          <ProportionsIcon className="h-4 w-4" />
-          <div>Resize</div>
+        <Button 
+          className="flex h-8 w-8 items-center justify-center border border-border" 
+          variant="outline"
+          size="icon"
+          title="Aspect Ratio"
+        >
+          <CurrentIcon className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="z-[250] w-60 px-2.5 py-3">
@@ -872,5 +886,6 @@ const ResizeOption = ({
     </div>
   );
 };
+
 
 
