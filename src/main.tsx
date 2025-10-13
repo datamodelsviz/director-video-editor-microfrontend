@@ -5,11 +5,16 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "non.geist";
 import "./index.css";
 import App from "./app";
+import SpatialApp from "./app-spatial";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+  },
+  {
+    path: "/spatial",
+    element: <SpatialApp />,
   },
 ]);
 createRoot(document.getElementById("root")!).render(
