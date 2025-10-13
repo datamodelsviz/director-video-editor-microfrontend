@@ -603,6 +603,17 @@ export default function Navbar({
           >
             <span className="text-sm">🎯</span>
           </Button>
+
+          {/* Figma Editor Button */}
+          <Button
+            onClick={() => window.location.href = '/figma'}
+            className="flex h-8 w-8 items-center justify-center border border-border transition-all duration-200 hover:bg-background-subtle"
+            variant="outline"
+            size="icon"
+            title="Open Figma-style Multi-Frame Editor"
+          >
+            <span className="text-sm">🎨</span>
+          </Button>
           
           <ExportButton stateManager={stateManager} />
           

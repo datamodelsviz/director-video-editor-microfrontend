@@ -6,6 +6,7 @@ import "non.geist";
 import "./index.css";
 import App from "./app";
 import SpatialApp from "./app-spatial";
+import { FigmaEditorPage } from "./features/figma-editor/page";
 
 const router = createBrowserRouter([
   {
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
   {
     path: "/spatial",
     element: <SpatialApp />,
+  },
+  {
+    path: "/figma",
+    element: <FigmaEditorPage />,
   },
 ]);
 createRoot(document.getElementById("root")!).render(
