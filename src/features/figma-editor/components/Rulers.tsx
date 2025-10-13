@@ -6,17 +6,57 @@ interface RulersProps {
 }
 
 export const Rulers: React.FC<RulersProps> = ({ zoom, scroll }) => {
+  const rulerSize = 24;
+  const tickInterval = 100; // pixels
+
   return (
-    <div className="rulers absolute inset-0 pointer-events-none">
+    <>
       {/* Horizontal Ruler */}
-      <div className="absolute top-0 left-0 right-0 h-6 bg-gray-100 border-b border-gray-300">
-        {/* Ruler markings would go here */}
+      <div 
+        className="ruler ruler--horizontal"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: rulerSize,
+          right: 0,
+          height: rulerSize,
+          zIndex: 100,
+          pointerEvents: 'none'
+        }}
+      >
+        {/* Ruler ticks and numbers would be rendered here */}
       </div>
       
       {/* Vertical Ruler */}
-      <div className="absolute top-0 left-0 bottom-0 w-6 bg-gray-100 border-r border-gray-300">
-        {/* Ruler markings would go here */}
+      <div 
+        className="ruler ruler--vertical"
+        style={{
+          position: 'absolute',
+          top: rulerSize,
+          left: 0,
+          bottom: 0,
+          width: rulerSize,
+          zIndex: 100,
+          pointerEvents: 'none'
+        }}
+      >
+        {/* Ruler ticks and numbers would be rendered here */}
       </div>
-    </div>
+
+      {/* Corner */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: rulerSize,
+          height: rulerSize,
+          background: 'var(--time-ruler-bg)',
+          borderRight: '1px solid var(--time-ruler-stroke)',
+          borderBottom: '1px solid var(--time-ruler-stroke)',
+          zIndex: 101
+        }}
+      />
+    </>
   );
 };

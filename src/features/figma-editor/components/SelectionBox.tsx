@@ -17,12 +17,10 @@ export const SelectionBox: React.FC<SelectionBoxProps> = ({
 }) => {
   return (
     <div
-      className={`absolute border-2 border-dashed pointer-events-none ${
-        isCreating ? 'border-blue-500 bg-blue-500/10' : 'border-gray-400 bg-gray-400/10'
-      }`}
+      className="selection-box"
       style={{
-        left: x,
-        top: y,
+        left: width >= 0 ? x : x + width,
+        top: height >= 0 ? y : y + height,
         width: Math.abs(width),
         height: Math.abs(height)
       }}

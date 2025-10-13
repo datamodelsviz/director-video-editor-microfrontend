@@ -5,17 +5,12 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "non.geist";
 import "./index.css";
 import App from "./app";
-import SpatialApp from "./app-spatial";
 import { FigmaEditorPage } from "./features/figma-editor/page";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-  },
-  {
-    path: "/spatial",
-    element: <SpatialApp />,
   },
   {
     path: "/figma",

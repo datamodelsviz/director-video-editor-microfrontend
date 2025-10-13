@@ -12,14 +12,9 @@ export const Guides: React.FC<GuidesProps> = ({ guides, zoom }) => {
       {guides.map(guide => (
         <div
           key={guide.id}
-          className={`absolute bg-blue-500 pointer-events-none ${
-            guide.orientation === 'vertical' 
-              ? 'w-px h-full' 
-              : 'h-px w-full'
-          }`}
+          className={`guide guide--${guide.orientation}`}
           style={{
-            [guide.orientation === 'vertical' ? 'left' : 'top']: guide.pos * zoom,
-            opacity: 0.6
+            [guide.orientation === 'vertical' ? 'left' : 'top']: guide.pos
           }}
         />
       ))}

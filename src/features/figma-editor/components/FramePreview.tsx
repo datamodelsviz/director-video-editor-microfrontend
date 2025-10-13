@@ -10,6 +10,8 @@ interface FramePreviewProps {
   zoom: number;
 }
 
+type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e';
+
 export const FramePreview: React.FC<FramePreviewProps> = ({
   frame,
   isSelected,
@@ -18,163 +20,198 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
   onUpdate,
   zoom
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [resizeHandle, setResizeHandle] = useState<ResizeHandle | null>(null);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, posX: 0, posY: 0 });
   const frameRef = useRef<HTMLDivElement>(null);
 
-  // Handle mouse down for dragging and resizing
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  // Handle resize start
+  const handleResizeStart = useCallback((e: React.MouseEvent, handle: ResizeHandle) => {
     e.stopPropagation();
-    
-    const target = e.target as HTMLElement;
-    const handle = target.dataset.handle;
-    
-    if (handle) {
-      // Resize mode
-      setIsResizing(true);
-      setResizeHandle(handle);
-      setDragStart({ x: e.clientX, y: e.clientY });
-    } else {
-      // Drag mode
-      setIsDragging(true);
-      setDragStart({ x: e.clientX, y: e.clientY });
-    }
-    
+    setIsResizing(true);
+    setResizeHandle(handle);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: frame.size.w,
+      height: frame.size.h,
+      posX: frame.position.x,
+      posY: frame.position.y
+    });
     onSelect();
-  }, [onSelect]);
+  }, [frame, onSelect]);
 
-  // Handle mouse move for dragging and resizing
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragging) {
-      const dx = (e.clientX - dragStart.x) / zoom;
-      const dy = (e.clientY - dragStart.y) / zoom;
-      
-      onUpdate({
-        position: {
-          x: frame.position.x + dx,
-          y: frame.position.y + dy
-        }
-      });
-      
-      setDragStart({ x: e.clientX, y: e.clientY });
-    } else if (isResizing && resizeHandle) {
-      const dx = (e.clientX - dragStart.x) / zoom;
-      const dy = (e.clientY - dragStart.y) / zoom;
-      
-      let newSize = { ...frame.size };
-      let newPosition = { ...frame.position };
-      
-      switch (resizeHandle) {
-        case 'nw':
-          newSize.w = Math.max(100, frame.size.w - dx);
-          newSize.h = Math.max(100, frame.size.h - dy);
-          newPosition.x = frame.position.x + dx;
-          newPosition.y = frame.position.y + dy;
-          break;
-        case 'ne':
-          newSize.w = Math.max(100, frame.size.w + dx);
-          newSize.h = Math.max(100, frame.size.h - dy);
-          newPosition.y = frame.position.y + dy;
-          break;
-        case 'sw':
-          newSize.w = Math.max(100, frame.size.w - dx);
-          newSize.h = Math.max(100, frame.size.h + dy);
-          newPosition.x = frame.position.x + dx;
-          break;
-        case 'se':
-          newSize.w = Math.max(100, frame.size.w + dx);
-          newSize.h = Math.max(100, frame.size.h + dy);
-          break;
-        case 'n':
-          newSize.h = Math.max(100, frame.size.h - dy);
-          newPosition.y = frame.position.y + dy;
-          break;
-        case 's':
-          newSize.h = Math.max(100, frame.size.h + dy);
-          break;
-        case 'w':
-          newSize.w = Math.max(100, frame.size.w - dx);
-          newPosition.x = frame.position.x + dx;
-          break;
-        case 'e':
-          newSize.w = Math.max(100, frame.size.w + dx);
-          break;
-      }
-      
-      onUpdate({
-        size: newSize,
-        position: newPosition
-      });
-      
-      setDragStart({ x: e.clientX, y: e.clientY });
+  // Handle resize move
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !resizeHandle) return;
+
+    const dx = (e.clientX - resizeStart.x) / zoom;
+    const dy = (e.clientY - resizeStart.y) / zoom;
+
+    let newSize = { w: resizeStart.width, h: resizeStart.height };
+    let newPosition = { x: resizeStart.posX, y: resizeStart.posY };
+
+    switch (resizeHandle) {
+      case 'nw':
+        newSize.w = Math.max(100, resizeStart.width - dx);
+        newSize.h = Math.max(100, resizeStart.height - dy);
+        newPosition.x = resizeStart.posX + (resizeStart.width - newSize.w);
+        newPosition.y = resizeStart.posY + (resizeStart.height - newSize.h);
+        break;
+      case 'ne':
+        newSize.w = Math.max(100, resizeStart.width + dx);
+        newSize.h = Math.max(100, resizeStart.height - dy);
+        newPosition.y = resizeStart.posY + (resizeStart.height - newSize.h);
+        break;
+      case 'sw':
+        newSize.w = Math.max(100, resizeStart.width - dx);
+        newSize.h = Math.max(100, resizeStart.height + dy);
+        newPosition.x = resizeStart.posX + (resizeStart.width - newSize.w);
+        break;
+      case 'se':
+        newSize.w = Math.max(100, resizeStart.width + dx);
+        newSize.h = Math.max(100, resizeStart.height + dy);
+        break;
+      case 'n':
+        newSize.h = Math.max(100, resizeStart.height - dy);
+        newPosition.y = resizeStart.posY + (resizeStart.height - newSize.h);
+        break;
+      case 's':
+        newSize.h = Math.max(100, resizeStart.height + dy);
+        break;
+      case 'w':
+        newSize.w = Math.max(100, resizeStart.width - dx);
+        newPosition.x = resizeStart.posX + (resizeStart.width - newSize.w);
+        break;
+      case 'e':
+        newSize.w = Math.max(100, resizeStart.width + dx);
+        break;
     }
-  }, [isDragging, isResizing, dragStart, resizeHandle, zoom, frame, onUpdate]);
 
-  // Handle mouse up
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
+    onUpdate({
+      size: newSize,
+      position: newPosition
+    });
+  }, [isResizing, resizeHandle, resizeStart, zoom, onUpdate]);
+
+  // Handle resize end
+  const handleResizeEnd = useCallback(() => {
     setIsResizing(false);
     setResizeHandle(null);
   }, []);
 
-  // Set up event listeners
+  // Set up event listeners for resize
   React.useEffect(() => {
-    if (isDragging || isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleResizeEnd);
       
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleResizeEnd);
       };
     }
-  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+  }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   // Get label color class
-  const getLabelColorClass = (color: string) => {
-    switch (color) {
-      case 'purple': return 'bg-purple-500';
-      case 'blue': return 'bg-blue-500';
-      case 'green': return 'bg-green-500';
-      case 'red': return 'bg-red-500';
-      case 'yellow': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
-    }
+  const getLabelColor = (color: string) => {
+    const colors: Record<string, string> = {
+      purple: '#9747FF',
+      blue: '#18a0fb',
+      green: '#2ecc71',
+      red: '#ff5a52',
+      yellow: '#ffcc00',
+      orange: '#ff8c00',
+      pink: '#ff69b4'
+    };
+    return colors[color] || colors.blue;
+  };
+
+  // Get resize cursor
+  const getResizeCursor = (handle: ResizeHandle) => {
+    const cursors: Record<ResizeHandle, string> = {
+      nw: 'nw-resize',
+      ne: 'ne-resize',
+      sw: 'sw-resize',
+      se: 'se-resize',
+      n: 'n-resize',
+      s: 's-resize',
+      w: 'w-resize',
+      e: 'e-resize'
+    };
+    return cursors[handle];
   };
 
   return (
     <div
       ref={frameRef}
-      className={`frame-preview absolute border-2 rounded-lg shadow-lg transition-all duration-200 ${
-        isSelected 
-          ? 'border-blue-500 shadow-blue-500/20' 
-          : 'border-gray-300 hover:border-gray-400'
-      } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`frame ${isSelected ? 'frame--selected' : ''}`}
       style={{
         left: frame.position.x,
         top: frame.position.y,
         width: frame.size.w,
         height: frame.size.h,
-        backgroundColor: frame.background,
         minWidth: 100,
         minHeight: 100
       }}
-      onMouseDown={handleMouseDown}
-      onDoubleClick={onDoubleClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        onDoubleClick();
+      }}
     >
-      {/* Frame Name */}
-      <div className="absolute top-2 left-2 flex items-center space-x-2 z-10">
-        <div className={`w-2 h-2 rounded-full ${getLabelColorClass(frame.labelColor)}`} />
-        <span className="text-xs font-medium text-white bg-black/50 px-2 py-1 rounded">
-          {frame.name}
+      {/* Frame Title */}
+      <div className="frame__title" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+        <div 
+          style={{ 
+            width: 8, 
+            height: 8, 
+            borderRadius: '50%', 
+            background: getLabelColor(frame.labelColor),
+            flexShrink: 0
+          }} 
+        />
+        <span style={{ fontWeight: 600 }}>{frame.name}</span>
+        <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>
+          – {frame.size.w}×{frame.size.h}
         </span>
       </div>
 
       {/* Frame Info */}
-      <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
-        {frame.size.w}×{frame.size.h} • {frame.duration}s • {frame.fps}fps
+      <div 
+        style={{
+          position: 'absolute',
+          bottom: 'var(--space-8)',
+          left: 'var(--space-8)',
+          fontSize: 'var(--fs-11)',
+          color: 'var(--text-tertiary)',
+          background: 'rgba(0,0,0,0.5)',
+          padding: '4px 8px',
+          borderRadius: 'var(--radius-xs)'
+        }}
+      >
+        {frame.duration}s • {frame.fps}fps • {frame.layers.length} layers
+      </div>
+
+      {/* Frame Content Preview */}
+      <div 
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--text-tertiary)',
+          fontSize: 'var(--fs-13)'
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>🎬</div>
+          <div>Double-click to edit</div>
+        </div>
       </div>
 
       {/* Resize Handles */}
@@ -182,58 +219,93 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
         <>
           {/* Corner handles */}
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-nw-resize"
-            style={{ top: -4, left: -4 }}
-            data-handle="nw"
+            className="frame__resize-handle"
+            style={{ 
+              top: -4, 
+              left: -4, 
+              cursor: getResizeCursor('nw'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 'nw')}
           />
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-ne-resize"
-            style={{ top: -4, right: -4 }}
-            data-handle="ne"
+            className="frame__resize-handle"
+            style={{ 
+              top: -4, 
+              right: -4, 
+              cursor: getResizeCursor('ne'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 'ne')}
           />
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-sw-resize"
-            style={{ bottom: -4, left: -4 }}
-            data-handle="sw"
+            className="frame__resize-handle"
+            style={{ 
+              bottom: -4, 
+              left: -4, 
+              cursor: getResizeCursor('sw'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 'sw')}
           />
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-se-resize"
-            style={{ bottom: -4, right: -4 }}
-            data-handle="se"
+            className="frame__resize-handle"
+            style={{ 
+              bottom: -4, 
+              right: -4, 
+              cursor: getResizeCursor('se'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 'se')}
           />
           
           {/* Edge handles */}
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-n-resize"
-            style={{ top: -4, left: '50%', transform: 'translateX(-50%)' }}
-            data-handle="n"
+            className="frame__resize-handle"
+            style={{ 
+              top: -4, 
+              left: '50%', 
+              transform: 'translateX(-50%)', 
+              cursor: getResizeCursor('n'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 'n')}
           />
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-s-resize"
-            style={{ bottom: -4, left: '50%', transform: 'translateX(-50%)' }}
-            data-handle="s"
+            className="frame__resize-handle"
+            style={{ 
+              bottom: -4, 
+              left: '50%', 
+              transform: 'translateX(-50%)', 
+              cursor: getResizeCursor('s'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 's')}
           />
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-w-resize"
-            style={{ left: -4, top: '50%', transform: 'translateY(-50%)' }}
-            data-handle="w"
+            className="frame__resize-handle"
+            style={{ 
+              left: -4, 
+              top: '50%', 
+              transform: 'translateY(-50%)', 
+              cursor: getResizeCursor('w'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 'w')}
           />
           <div
-            className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-e-resize"
-            style={{ right: -4, top: '50%', transform: 'translateY(-50%)' }}
-            data-handle="e"
+            className="frame__resize-handle"
+            style={{ 
+              right: -4, 
+              top: '50%', 
+              transform: 'translateY(-50%)', 
+              cursor: getResizeCursor('e'),
+              borderRadius: '2px'
+            }}
+            onMouseDown={(e) => handleResizeStart(e, 'e')}
           />
         </>
       )}
-
-      {/* Frame Content Preview */}
-      <div className="w-full h-full flex items-center justify-center text-gray-400">
-        <div className="text-center">
-          <div className="text-2xl mb-2">🎬</div>
-          <div className="text-sm">Frame Preview</div>
-          <div className="text-xs mt-1">{frame.layers.length} layers</div>
-        </div>
-      </div>
     </div>
   );
 };

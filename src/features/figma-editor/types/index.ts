@@ -1,5 +1,8 @@
-// Core data model for Figma-like multi-frame editor
+// Figma-style Multi-Frame Editor Data Model
 
+import { ITrack, ITrackItem } from "@designcombo/types";
+
+// Board State
 export interface BoardState {
   zoom: number;
   scroll: { x: number; y: number };
@@ -15,6 +18,7 @@ export interface Guide {
   locked?: boolean;
 }
 
+// Frame (Scene)
 export interface Frame {
   id: string;
   name: string;
@@ -24,51 +28,45 @@ export interface Frame {
   fps: number;
   duration: number;
   posterTime: number;
-  labelColor: string;
+  labelColor: 'purple' | 'blue' | 'green' | 'red' | 'yellow' | 'orange' | 'pink';
   layers: Layer[];
   timeline: TimelineState;
-  // Figma-like properties
   locked?: boolean;
   visible?: boolean;
-  opacity?: number;
-  blendMode?: string;
 }
 
+// Layer (inside Frame)
 export interface Layer {
   id: string;
   name: string;
-  type: 'video' | 'audio' | 'text' | 'image' | 'shape';
+  type: 'video' | 'audio' | 'image' | 'text' | 'shape';
   visible: boolean;
   locked: boolean;
   opacity: number;
   blendMode: string;
-  // Timeline properties
   startTime: number;
   duration: number;
-  // Layer-specific properties
+  // Type-specific properties
+  src?: string;
+  text?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  rotation?: number;
+  scale?: number;
   [key: string]: any;
 }
 
+// Timeline State
 export interface TimelineState {
   duration: number;
   fps: number;
-  tracks: Track[];
+  tracks: ITrack[];
+  playheadTime: number;
 }
 
-export interface Track {
-  id: string;
-  type: string;
-  items: TrackItem[];
-}
-
-export interface TrackItem {
-  id: string;
-  name: string;
-  start: number;
-  duration: number;
-  [key: string]: any;
-}
-
+// Sequence (Playlist)
 export interface Sequence {
   order: string[]; // frame IDs in playback order
   transitions: Transition[];
@@ -85,6 +83,7 @@ export interface Transition {
   curve: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut';
 }
 
+// Project
 export interface Project {
   projectId: string;
   board: BoardState;
@@ -92,23 +91,24 @@ export interface Project {
   sequence: Sequence;
 }
 
-// Editor modes
+// Editor Modes
 export type EditorMode = 'board' | 'frame';
 
+export type Tool = 'move' | 'hand' | 'frame' | 'text' | 'shape' | 'pen' | 'comment';
+
+// Editor State
 export interface EditorState {
   mode: EditorMode;
   focusedFrameId: string | null;
   selectedFrameIds: string[];
   selectedLayerIds: string[];
-  // Tool states
-  currentTool: 'move' | 'hand' | 'frame' | 'text' | 'shape' | 'pen' | 'comment';
-  // Board state
+  currentTool: Tool;
   boardState: BoardState;
-  // Performance
   proxyQuality: 'full' | 'half' | 'quarter';
+  isPlaying: boolean;
 }
 
-// Inspector tabs
+// Inspector
 export type InspectorTab = 'frame' | 'layers' | 'properties' | 'timeline';
 
 export interface InspectorState {
@@ -119,7 +119,21 @@ export interface InspectorState {
   } | null;
 }
 
-// Keyboard shortcuts
+// Gallery/Assets
+export interface Asset {
+  id: string;
+  name: string;
+  type: 'video' | 'audio' | 'image';
+  url: string;
+  thumbnail?: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+  size?: number;
+  createdAt: Date;
+}
+
+// Keyboard Shortcuts
 export interface KeyboardShortcut {
   key: string;
   ctrl?: boolean;
@@ -130,7 +144,7 @@ export interface KeyboardShortcut {
   scope: 'board' | 'frame' | 'global';
 }
 
-// Performance and rendering
+// Viewport
 export interface ViewportBounds {
   x: number;
   y: number;
@@ -138,6 +152,7 @@ export interface ViewportBounds {
   height: number;
 }
 
+// Frame Thumbnail Cache
 export interface FrameThumbnail {
   frameId: string;
   dataUrl: string;
@@ -147,7 +162,7 @@ export interface FrameThumbnail {
 
 // Events
 export interface BoardEvent {
-  type: 'frameCreated' | 'frameMoved' | 'frameResized' | 'frameSelected' | 'frameDeleted';
+  type: 'frameCreated' | 'frameMoved' | 'frameResized' | 'frameSelected' | 'frameDeleted' | 'frameFocused';
   frameId: string;
   data?: any;
 }
@@ -156,3 +171,31 @@ export interface SequenceEvent {
   type: 'frameAdded' | 'frameRemoved' | 'frameReordered' | 'transitionAdded' | 'transitionRemoved';
   data: any;
 }
+
+// Frame Presets
+export interface FramePreset {
+  name: string;
+  width: number;
+  height: number;
+  fps: number;
+  duration: number;
+}
+
+export const FRAME_PRESETS: FramePreset[] = [
+  { name: '1080p (16:9)', width: 1920, height: 1080, fps: 30, duration: 5 },
+  { name: '1080p Square', width: 1080, height: 1080, fps: 30, duration: 5 },
+  { name: '1080p Portrait (9:16)', width: 1080, height: 1920, fps: 30, duration: 5 },
+  { name: '4K (16:9)', width: 3840, height: 2160, fps: 30, duration: 5 },
+  { name: '4K Square', width: 2160, height: 2160, fps: 30, duration: 5 },
+];
+
+// Snapping
+export interface SnapPoint {
+  type: 'edge' | 'center' | 'guide';
+  orientation: 'vertical' | 'horizontal';
+  position: number;
+  frameId?: string;
+}
+
+export const SNAP_THRESHOLD = 4; // pixels
+

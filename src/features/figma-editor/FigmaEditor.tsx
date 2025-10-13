@@ -1,19 +1,20 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Project, EditorState, EditorMode, InspectorTab } from './types';
-import { BoardCanvas } from './components/BoardCanvas';
-import { FrameEditor } from './components/FrameEditor';
+import { Project, EditorState, EditorMode, InspectorTab, Frame } from './types';
+import { BoardView } from './components/BoardView';
+import { FrameEditorWrapper } from './components/FrameEditorWrapper';
 import { Inspector } from './components/Inspector';
-import { SequenceDock } from './components/SequenceDock';
 import { Toolbar } from './components/Toolbar';
+import { LeftSidebar } from './components/LeftSidebar';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useProjectState } from './hooks/useProjectState';
 import { useFocusController } from './hooks/useFocusController';
+import './styles/tokens.css';
 
 // Sample project data
-const sampleProject: Project = {
+const createSampleProject = (): Project => ({
   projectId: 'figma-project-1',
   board: {
-    zoom: 1,
+    zoom: 0.85,
     scroll: { x: 0, y: 0 },
     snap: true,
     rulers: true,
@@ -26,24 +27,25 @@ const sampleProject: Project = {
     {
       id: 'frame-1',
       name: 'Intro',
-      position: { x: -2400, y: 0 },
+      position: { x: -1800, y: 0 },
       size: { w: 1920, h: 1080 },
       background: '#0b0b0b',
       fps: 30,
       duration: 6.0,
-      posterTime: 0.3,
+      posterTime: 0.25,
       labelColor: 'purple',
       layers: [],
       timeline: {
         duration: 6.0,
         fps: 30,
-        tracks: []
+        tracks: [],
+        playheadTime: 0
       }
     },
     {
       id: 'frame-2',
       name: 'Main Content',
-      position: { x: -400, y: 0 },
+      position: { x: 200, y: 0 },
       size: { w: 1920, h: 1080 },
       background: '#0b0b0b',
       fps: 30,
@@ -54,13 +56,14 @@ const sampleProject: Project = {
       timeline: {
         duration: 10.0,
         fps: 30,
-        tracks: []
+        tracks: [],
+        playheadTime: 0
       }
     },
     {
       id: 'frame-3',
       name: 'Outro',
-      position: { x: 1600, y: 0 },
+      position: { x: 2200, y: 0 },
       size: { w: 1920, h: 1080 },
       background: '#0b0b0b',
       fps: 30,
@@ -71,7 +74,8 @@ const sampleProject: Project = {
       timeline: {
         duration: 4.0,
         fps: 30,
-        tracks: []
+        tracks: [],
+        playheadTime: 0
       }
     }
   ],
@@ -87,14 +91,14 @@ const sampleProject: Project = {
         curve: 'easeInOut'
       }
     ],
-    loop: true,
+    loop: false,
     playRange: { startIndex: 0, endIndex: 2 }
   }
-};
+});
 
 export const FigmaEditor: React.FC = () => {
   // Project state
-  const { project, updateProject } = useProjectState(sampleProject);
+  const { project, updateProject, updateFrame, addFrame, removeFrame } = useProjectState(createSampleProject());
   
   // Editor state
   const [editorState, setEditorState] = useState<EditorState>({
@@ -104,20 +108,22 @@ export const FigmaEditor: React.FC = () => {
     selectedLayerIds: [],
     currentTool: 'move',
     boardState: project.board,
-    proxyQuality: 'half'
+    proxyQuality: 'half',
+    isPlaying: false
   });
 
   // Inspector state
   const [inspectorState, setInspectorState] = useState({
     activeTab: 'frame' as InspectorTab,
-    selectedItem: null
+    selectedItem: null as { type: 'frame' | 'layer'; id: string } | null
   });
 
   // Focus controller
-  const { enterFrameFocus, exitFrameFocus } = useFocusController(
+  const { enterFrameFocus, exitFrameFocus } = useFocusController({
     editorState,
-    setEditorState
-  );
+    setEditorState,
+    setInspectorState
+  });
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -126,7 +132,9 @@ export const FigmaEditor: React.FC = () => {
     project,
     updateProject,
     enterFrameFocus,
-    exitFrameFocus
+    exitFrameFocus,
+    updateFrame,
+    removeFrame
   });
 
   // Handle frame selection
@@ -134,7 +142,9 @@ export const FigmaEditor: React.FC = () => {
     setEditorState(prev => ({
       ...prev,
       selectedFrameIds: multiSelect 
-        ? [...prev.selectedFrameIds, frameId]
+        ? prev.selectedFrameIds.includes(frameId)
+          ? prev.selectedFrameIds.filter(id => id !== frameId)
+          : [...prev.selectedFrameIds, frameId]
         : [frameId],
       selectedLayerIds: [] // Clear layer selection when selecting frames
     }));
@@ -148,15 +158,11 @@ export const FigmaEditor: React.FC = () => {
   // Handle frame focus (enter frame editing mode)
   const handleFrameFocus = useCallback((frameId: string) => {
     enterFrameFocus(frameId);
-    setInspectorState(prev => ({
-      ...prev,
-      activeTab: 'layers'
-    }));
   }, [enterFrameFocus]);
 
   // Handle frame creation
   const handleCreateFrame = useCallback((position: { x: number; y: number }, size: { w: number; h: number }) => {
-    const newFrame = {
+    const newFrame: Frame = {
       id: `frame-${Date.now()}`,
       name: `Frame ${project.frames.length + 1}`,
       position,
@@ -170,128 +176,112 @@ export const FigmaEditor: React.FC = () => {
       timeline: {
         duration: 5.0,
         fps: 30,
-        tracks: []
+        tracks: [],
+        playheadTime: 0
       }
     };
 
-    updateProject(prev => ({
-      ...prev,
-      frames: [...prev.frames, newFrame]
-    }));
-
+    addFrame(newFrame);
     handleFrameSelect(newFrame.id);
-  }, [project.frames.length, updateProject, handleFrameSelect]);
+  }, [project.frames.length, addFrame, handleFrameSelect]);
 
   // Handle frame update
-  const handleFrameUpdate = useCallback((frameId: string, updates: Partial<typeof project.frames[0]>) => {
+  const handleFrameUpdate = useCallback((frameId: string, updates: Partial<Frame>) => {
+    updateFrame(frameId, updates);
+  }, [updateFrame]);
+
+  // Handle layer selection
+  const handleLayerSelect = useCallback((layerId: string) => {
+    setEditorState(prev => ({
+      ...prev,
+      selectedLayerIds: [layerId]
+    }));
+    
+    setInspectorState(prev => ({
+      ...prev,
+      activeTab: 'properties',
+      selectedItem: { type: 'layer', id: layerId }
+    }));
+  }, []);
+
+  // Handle board state changes
+  const handleBoardStateChange = useCallback((updates: Partial<typeof editorState.boardState>) => {
+    setEditorState(prev => ({
+      ...prev,
+      boardState: { ...prev.boardState, ...updates }
+    }));
+    
     updateProject(prev => ({
       ...prev,
-      frames: prev.frames.map(frame => 
-        frame.id === frameId ? { ...frame, ...updates } : frame
-      )
+      board: { ...prev.board, ...updates }
     }));
   }, [updateProject]);
 
-  // Handle sequence reorder
-  const handleSequenceReorder = useCallback((frameIds: string[]) => {
-    updateProject(prev => ({
-      ...prev,
-      sequence: {
-        ...prev.sequence,
-        order: frameIds
-      }
-    }));
-  }, [updateProject]);
-
-  // Handle transition add/update
-  const handleTransitionUpdate = useCallback((transition: any) => {
-    updateProject(prev => ({
-      ...prev,
-      sequence: {
-        ...prev.sequence,
-        transitions: prev.sequence.transitions.map(t => 
-          t.id === transition.id ? transition : t
-        )
-      }
-    }));
-  }, [updateProject]);
+  // Get focused frame
+  const focusedFrame = editorState.focusedFrameId 
+    ? project.frames.find(f => f.id === editorState.focusedFrameId)
+    : null;
 
   return (
-    <div className="figma-editor h-screen w-full bg-gray-50 flex flex-col">
+    <div className="figma-editor h-screen w-full flex flex-col overflow-hidden">
       {/* Top Toolbar */}
       <Toolbar
         currentTool={editorState.currentTool}
         onToolChange={(tool) => setEditorState(prev => ({ ...prev, currentTool: tool }))}
         boardState={editorState.boardState}
-        onBoardStateChange={(boardState) => setEditorState(prev => ({ ...prev, boardState }))}
+        onBoardStateChange={handleBoardStateChange}
         project={project}
+        editorState={editorState}
+        onPlay={() => setEditorState(prev => ({ ...prev, isPlaying: !prev.isPlaying }))}
       />
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Frames List */}
-        <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0">
-          <div className="p-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Frames</h3>
-            <div className="space-y-2">
-              {project.frames.map(frame => (
-                <div
-                  key={frame.id}
-                  className={`p-2 rounded cursor-pointer transition-colors ${
-                    editorState.selectedFrameIds.includes(frame.id)
-                      ? 'bg-blue-50 border border-blue-200'
-                      : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => handleFrameSelect(frame.id)}
-                >
-                  <div className="text-sm font-medium text-gray-900">{frame.name}</div>
-                  <div className="text-xs text-gray-500">
-                    {frame.size.w}×{frame.size.h} • {frame.duration}s
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* Left Sidebar */}
+        <LeftSidebar
+          frames={project.frames}
+          selectedFrameIds={editorState.selectedFrameIds}
+          onFrameSelect={handleFrameSelect}
+          onFrameFocus={handleFrameFocus}
+          onCreateFrame={() => {
+            // Create frame at center of viewport
+            const centerX = -editorState.boardState.scroll.x + 400;
+            const centerY = -editorState.boardState.scroll.y + 300;
+            handleCreateFrame({ x: centerX, y: centerY }, { w: 1920, h: 1080 });
+          }}
+        />
 
         {/* Center - Board or Frame Editor */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative overflow-hidden">
           {editorState.mode === 'board' ? (
-            <BoardCanvas
+            <BoardView
               project={project}
               editorState={editorState}
               onFrameSelect={handleFrameSelect}
               onFrameFocus={handleFrameFocus}
               onCreateFrame={handleCreateFrame}
               onFrameUpdate={handleFrameUpdate}
+              onBoardStateChange={handleBoardStateChange}
             />
-          ) : (
-            <FrameEditor
-              frame={project.frames.find(f => f.id === editorState.focusedFrameId)!}
+          ) : focusedFrame ? (
+            <FrameEditorWrapper
+              frame={focusedFrame}
               onFrameUpdate={handleFrameUpdate}
               onExitFocus={exitFrameFocus}
+              onLayerSelect={handleLayerSelect}
+              selectedLayerIds={editorState.selectedLayerIds}
             />
-          )}
+          ) : null}
         </div>
 
         {/* Right Sidebar - Inspector */}
-        <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0">
-          <Inspector
-            state={inspectorState}
-            onStateChange={setInspectorState}
-            project={project}
-            editorState={editorState}
-            onFrameUpdate={handleFrameUpdate}
-          />
-        </div>
-      </div>
-
-      {/* Bottom - Sequence Dock */}
-      <div className="h-32 bg-white border-t border-gray-200">
-        <SequenceDock
+        <Inspector
+          state={inspectorState}
+          onStateChange={setInspectorState}
           project={project}
-          onSequenceReorder={handleSequenceReorder}
-          onTransitionUpdate={handleTransitionUpdate}
+          editorState={editorState}
+          onFrameUpdate={handleFrameUpdate}
+          focusedFrame={focusedFrame}
         />
       </div>
     </div>

@@ -592,17 +592,6 @@ export default function Navbar({
           >
             <Terminal className="h-4 w-4" />
           </Button>
-          
-          {/* Spatial Editor Button */}
-          <Button
-            onClick={() => window.location.href = '/spatial'}
-            className="flex h-8 w-8 items-center justify-center border border-border transition-all duration-200 hover:bg-background-subtle"
-            variant="outline"
-            size="icon"
-            title="Open Spatial Timeline Editor"
-          >
-            <span className="text-sm">🎯</span>
-          </Button>
 
           {/* Figma Editor Button */}
           <Button

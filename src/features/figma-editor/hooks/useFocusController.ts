@@ -1,12 +1,20 @@
 import { useCallback } from 'react';
-import { EditorState } from '../types';
+import { EditorState, InspectorTab } from '../types';
 
 interface UseFocusControllerProps {
   editorState: EditorState;
   setEditorState: React.Dispatch<React.SetStateAction<EditorState>>;
+  setInspectorState: React.Dispatch<React.SetStateAction<{
+    activeTab: InspectorTab;
+    selectedItem: { type: 'frame' | 'layer'; id: string } | null;
+  }>>;
 }
 
-export const useFocusController = ({ editorState, setEditorState }: UseFocusControllerProps) => {
+export const useFocusController = ({ 
+  editorState, 
+  setEditorState, 
+  setInspectorState 
+}: UseFocusControllerProps) => {
   const enterFrameFocus = useCallback((frameId: string) => {
     setEditorState(prev => ({
       ...prev,
@@ -15,7 +23,12 @@ export const useFocusController = ({ editorState, setEditorState }: UseFocusCont
       selectedFrameIds: [frameId],
       selectedLayerIds: []
     }));
-  }, [setEditorState]);
+    
+    setInspectorState(prev => ({
+      ...prev,
+      activeTab: 'layers'
+    }));
+  }, [setEditorState, setInspectorState]);
 
   const exitFrameFocus = useCallback(() => {
     setEditorState(prev => ({
@@ -24,7 +37,12 @@ export const useFocusController = ({ editorState, setEditorState }: UseFocusCont
       focusedFrameId: null,
       selectedLayerIds: []
     }));
-  }, [setEditorState]);
+    
+    setInspectorState(prev => ({
+      ...prev,
+      activeTab: 'frame'
+    }));
+  }, [setEditorState, setInspectorState]);
 
   return {
     enterFrameFocus,

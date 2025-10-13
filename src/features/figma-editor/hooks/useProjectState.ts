@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Project } from '../types';
+import { Project, Frame } from '../types';
 
 export const useProjectState = (initialProject: Project) => {
   const [project, setProject] = useState<Project>(initialProject);
@@ -8,7 +8,7 @@ export const useProjectState = (initialProject: Project) => {
     setProject(updater);
   }, []);
 
-  const updateFrame = useCallback((frameId: string, updates: Partial<Project['frames'][0]>) => {
+  const updateFrame = useCallback((frameId: string, updates: Partial<Frame>) => {
     setProject(prev => ({
       ...prev,
       frames: prev.frames.map(frame => 
@@ -17,10 +17,14 @@ export const useProjectState = (initialProject: Project) => {
     }));
   }, []);
 
-  const addFrame = useCallback((frame: Project['frames'][0]) => {
+  const addFrame = useCallback((frame: Frame) => {
     setProject(prev => ({
       ...prev,
-      frames: [...prev.frames, frame]
+      frames: [...prev.frames, frame],
+      sequence: {
+        ...prev.sequence,
+        order: [...prev.sequence.order, frame.id]
+      }
     }));
   }, []);
 

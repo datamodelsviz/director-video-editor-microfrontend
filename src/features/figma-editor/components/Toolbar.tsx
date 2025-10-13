@@ -1,12 +1,14 @@
 import React from 'react';
-import { Project, BoardState } from '../types';
+import { Project, BoardState, Tool, EditorState } from '../types';
 
 interface ToolbarProps {
-  currentTool: string;
-  onToolChange: (tool: string) => void;
+  currentTool: Tool;
+  onToolChange: (tool: Tool) => void;
   boardState: BoardState;
-  onBoardStateChange: (boardState: BoardState) => void;
+  onBoardStateChange: (updates: Partial<BoardState>) => void;
   project: Project;
+  editorState: EditorState;
+  onPlay: () => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -14,9 +16,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onToolChange,
   boardState,
   onBoardStateChange,
-  project
+  project,
+  editorState,
+  onPlay
 }) => {
-  const tools = [
+  const tools: Array<{ id: Tool; label: string; icon: string; shortcut: string }> = [
     { id: 'move', label: 'Move', icon: '↖️', shortcut: 'V' },
     { id: 'hand', label: 'Hand', icon: '✋', shortcut: 'H' },
     { id: 'frame', label: 'Frame', icon: '🖼️', shortcut: 'F' },
@@ -27,79 +31,123 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   ];
 
   return (
-    <div className="toolbar h-12 bg-white border-b border-gray-200 flex items-center px-4 space-x-4">
+    <div 
+      className="toolbar"
+      style={{
+        height: 48,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 var(--space-16)',
+        gap: 'var(--space-12)',
+        borderBottom: '1px solid var(--stroke)'
+      }}
+    >
       {/* Tools */}
-      <div className="flex items-center space-x-1">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
         {tools.map(tool => (
           <button
             key={tool.id}
             onClick={() => onToolChange(tool.id)}
-            className={`w-8 h-8 flex items-center justify-center rounded text-sm transition-colors ${
-              currentTool === tool.id
-                ? 'bg-blue-100 text-blue-600 border border-blue-200'
-                : 'hover:bg-gray-100 text-gray-600'
-            }`}
+            className={`btn btn--icon ${currentTool === tool.id ? 'btn--active' : ''}`}
             title={`${tool.label} (${tool.shortcut})`}
           >
-            {tool.icon}
+            <span style={{ fontSize: 14 }}>{tool.icon}</span>
           </button>
         ))}
       </div>
 
       {/* Separator */}
-      <div className="w-px h-6 bg-gray-300" />
+      <div style={{ width: 1, height: 24, background: 'var(--stroke)' }} />
 
       {/* Zoom Controls */}
-      <div className="flex items-center space-x-2">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
         <button
-          onClick={() => onBoardStateChange({ ...boardState, zoom: Math.min(5, boardState.zoom * 1.2) })}
-          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded"
+          onClick={() => onBoardStateChange({ zoom: Math.min(5, boardState.zoom * 1.2) })}
+          className="btn btn--icon"
+          title="Zoom In (Cmd/Ctrl +)"
         >
           +
         </button>
-        <span className="text-sm text-gray-600 min-w-[60px] text-center">
+        <span 
+          style={{ 
+            minWidth: 60, 
+            textAlign: 'center', 
+            fontSize: 'var(--fs-12)', 
+            color: 'var(--text-secondary)' 
+          }}
+        >
           {Math.round(boardState.zoom * 100)}%
         </span>
         <button
-          onClick={() => onBoardStateChange({ ...boardState, zoom: Math.max(0.1, boardState.zoom * 0.8) })}
-          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded"
+          onClick={() => onBoardStateChange({ zoom: Math.max(0.1, boardState.zoom * 0.8) })}
+          className="btn btn--icon"
+          title="Zoom Out (Cmd/Ctrl -)"
         >
-          -
+          −
         </button>
       </div>
 
       {/* Separator */}
-      <div className="w-px h-6 bg-gray-300" />
+      <div style={{ width: 1, height: 24, background: 'var(--stroke)' }} />
 
       {/* Toggles */}
-      <div className="flex items-center space-x-2">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
         <button
-          onClick={() => onBoardStateChange({ ...boardState, snap: !boardState.snap })}
-          className={`px-3 py-1 text-sm rounded transition-colors ${
-            boardState.snap
-              ? 'bg-blue-100 text-blue-600 border border-blue-200'
-              : 'text-gray-600 hover:bg-gray-100'
-          }`}
+          onClick={() => onBoardStateChange({ snap: !boardState.snap })}
+          className={`btn ${boardState.snap ? 'btn--active' : ''}`}
+          title="Toggle Snap"
         >
           Snap
         </button>
         <button
-          onClick={() => onBoardStateChange({ ...boardState, rulers: !boardState.rulers })}
-          className={`px-3 py-1 text-sm rounded transition-colors ${
-            boardState.rulers
-              ? 'bg-blue-100 text-blue-600 border border-blue-200'
-              : 'text-gray-600 hover:bg-gray-100'
-          }`}
+          onClick={() => onBoardStateChange({ rulers: !boardState.rulers })}
+          className={`btn ${boardState.rulers ? 'btn--active' : ''}`}
+          title="Toggle Rulers (Shift+R)"
         >
           Rulers
         </button>
       </div>
 
-      {/* Project Info */}
-      <div className="ml-auto flex items-center space-x-4 text-sm text-gray-600">
-        <span>{project.frames.length} frames</span>
-        <span>{project.sequence.order.length} in sequence</span>
+      {/* Separator */}
+      <div style={{ width: 1, height: 24, background: 'var(--stroke)' }} />
+
+      {/* Play Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
+        <button
+          onClick={onPlay}
+          className="btn btn--icon"
+          title="Play/Pause"
+        >
+          {editorState.isPlaying ? '⏸️' : '▶️'}
+        </button>
       </div>
+
+      {/* Project Info */}
+      <div 
+        style={{ 
+          marginLeft: 'auto', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 'var(--space-16)', 
+          fontSize: 'var(--fs-12)', 
+          color: 'var(--text-secondary)' 
+        }}
+      >
+        <span>{project.frames.length} frames</span>
+        <span>•</span>
+        <span>{project.sequence.order.length} in sequence</span>
+        <span>•</span>
+        <span>{editorState.mode === 'frame' ? 'Editing Frame' : 'Board View'}</span>
+      </div>
+
+      {/* Back to Main Editor */}
+      <button
+        onClick={() => window.location.href = '/'}
+        className="btn"
+        style={{ marginLeft: 'var(--space-12)' }}
+      >
+        ← Main Editor
+      </button>
     </div>
   );
 };
