@@ -53,22 +53,9 @@ export const Audios = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-1 flex-col">
-        <div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
-          Audios
-          <span className="ml-2 text-xs text-red-400">(API Error)</span>
-        </div>
-        <div className="flex flex-1 items-center justify-center px-4">
-          <div className="text-center text-zinc-400">
-            <p className="text-sm">Failed to load audios</p>
-            <p className="text-xs mt-1">{error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Note: We don't early return on error anymore
+  // Instead, we show the error badge but still display fallback audio items
+  // This matches the behavior of Videos and Images components
 
   // If we have generation types, show tabs; otherwise show all audios
   if (generationTypes.length > 1) {

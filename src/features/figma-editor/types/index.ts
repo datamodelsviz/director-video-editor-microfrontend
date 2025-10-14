@@ -109,7 +109,7 @@ export interface EditorState {
 }
 
 // Inspector
-export type InspectorTab = 'frame' | 'layers' | 'properties' | 'timeline';
+export type InspectorTab = 'frame' | 'layers';
 
 export interface InspectorState {
   activeTab: InspectorTab;

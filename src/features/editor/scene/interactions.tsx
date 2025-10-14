@@ -34,6 +34,8 @@ export function SceneInteractions({
 	const moveableRef = useRef<Moveable>(null);
 	const [selectionInfo, setSelectionInfo] =
 		useState<SelectionInfo>(emptySelection);
+	const lastTransformRef = useRef<string>("");
+	const lastRotationRef = useRef<string>("");
 
 	useEffect(() => {
 		const updateTargets = (time?: number) => {
@@ -178,6 +180,7 @@ export function SceneInteractions({
 	useEffect(() => {
 		setSceneMoveableRef(moveableRef as React.RefObject<Moveable>);
 	}, [moveableRef]);
+
 	return (
 		<Moveable
 			ref={moveableRef}
@@ -196,18 +199,25 @@ export function SceneInteractions({
 				if (!isDrag) return;
 				const targetId = getIdFromClassName(target.className) as string;
 
+				// Convert CSS pixel values to numbers
+				const left = parseFloat(target.style.left) || 0;
+				const top = parseFloat(target.style.top) || 0;
+
 				dispatch(EDIT_OBJECT, {
 					payload: {
 						[targetId]: {
 							details: {
-								left: target.style.left,
-								top: target.style.top,
+								left: left,
+								top: top,
 							},
 						},
 					},
 				});
 			}}
 			onScale={({ target, transform, direction }) => {
+				console.log('SceneInteractions: onScale triggered', { transform, direction });
+				// Store the transform value for use in onScaleEnd
+				lastTransformRef.current = transform;
 				const [xControl, yControl] = direction;
 
 				const moveX = xControl === -1;
@@ -254,32 +264,66 @@ export function SceneInteractions({
 				target.style.top = `${newTop}px`;
 			}}
 			onScaleEnd={({ target }) => {
-				if (!target.style.transform) return;
+				console.log('SceneInteractions: onScaleEnd triggered', { 
+					transform: target.style.transform,
+					storedTransform: lastTransformRef.current,
+					left: target.style.left,
+					top: target.style.top
+				});
+				
+				// Use the stored transform value instead of target.style.transform
+				const finalTransform = lastTransformRef.current;
+				if (!finalTransform || finalTransform === "none") return;
+				
 				const targetId = getIdFromClassName(target.className) as string;
+
+				// Convert CSS pixel values to numbers
+				const left = parseFloat(target.style.left) || 0;
+				const top = parseFloat(target.style.top) || 0;
 
 				dispatch(EDIT_OBJECT, {
 					payload: {
 						[targetId]: {
 							details: {
-								transform: target.style.transform,
-								left: Number.parseFloat(target.style.left),
-								top: Number.parseFloat(target.style.top),
+								transform: finalTransform,
+								left: left,
+								top: top,
 							},
 						},
 					},
 				});
 			}}
 			onRotate={({ target, transform }) => {
+				console.log('SceneInteractions: onRotate triggered', { transform });
+				// Store the rotation transform for use in onRotateEnd
+				lastRotationRef.current = transform;
 				target.style.transform = transform;
 			}}
 			onRotateEnd={({ target }) => {
-				if (!target.style.transform) return;
+				console.log('SceneInteractions: onRotateEnd triggered', { 
+					transform: target.style.transform,
+					storedRotation: lastRotationRef.current,
+					left: target.style.left,
+					top: target.style.top
+				});
+				
+				// Use the stored rotation transform instead of target.style.transform
+				const finalRotation = lastRotationRef.current;
+				if (!finalRotation || finalRotation === "none") return;
+				
 				const targetId = getIdFromClassName(target.className) as string;
+				
+				// Convert CSS pixel values to numbers
+				const left = parseFloat(target.style.left) || 0;
+				const top = parseFloat(target.style.top) || 0;
+				
 				dispatch(EDIT_OBJECT, {
 					payload: {
 						[targetId]: {
 							details: {
-								transform: target.style.transform,
+								transform: finalRotation,
+								left: left,
+								top: top,
 							},
 						},
 					},

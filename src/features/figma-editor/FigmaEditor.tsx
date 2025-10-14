@@ -4,10 +4,13 @@ import { BoardView } from './components/BoardView';
 import { FrameEditorWrapper } from './components/FrameEditorWrapper';
 import { Inspector } from './components/Inspector';
 import { Toolbar } from './components/Toolbar';
-import { LeftSidebar } from './components/LeftSidebar';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useProjectState } from './hooks/useProjectState';
 import { useFocusController } from './hooks/useFocusController';
+import { getCompactFontData, loadFonts } from '../editor/utils/fonts';
+import { FONTS } from '../editor/data/fonts';
+import { SECONDARY_FONT, SECONDARY_FONT_URL } from '../editor/constants/constants';
+import useDataState from '../editor/store/use-data-state';
 import './styles/tokens.css';
 
 // Sample project data
@@ -125,6 +128,23 @@ export const FigmaEditor: React.FC = () => {
     setInspectorState
   });
 
+  // Initialize fonts for editor
+  const { setCompactFonts, setFonts } = useDataState();
+
+  useEffect(() => {
+    // Load font data
+    setCompactFonts(getCompactFontData(FONTS));
+    setFonts(FONTS);
+    
+    // Load secondary font
+    loadFonts([
+      {
+        name: SECONDARY_FONT,
+        url: SECONDARY_FONT_URL,
+      },
+    ]);
+  }, [setCompactFonts, setFonts]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     editorState,
@@ -190,6 +210,21 @@ export const FigmaEditor: React.FC = () => {
     updateFrame(frameId, updates);
   }, [updateFrame]);
 
+  // Handle frame reordering
+  const handleFrameReorder = useCallback((fromIndex: number, toIndex: number) => {
+    const newOrder = [...project.sequence.order];
+    const [movedFrame] = newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, movedFrame);
+    
+    updateProject(prev => ({
+      ...prev,
+      sequence: {
+        ...prev.sequence,
+        order: newOrder
+      }
+    }));
+  }, [project.sequence.order, updateProject]);
+
   // Handle layer selection
   const handleLayerSelect = useCallback((layerId: string) => {
     setEditorState(prev => ({
@@ -199,7 +234,7 @@ export const FigmaEditor: React.FC = () => {
     
     setInspectorState(prev => ({
       ...prev,
-      activeTab: 'properties',
+      activeTab: 'layers',
       selectedItem: { type: 'layer', id: layerId }
     }));
   }, []);
@@ -237,18 +272,16 @@ export const FigmaEditor: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
-        <LeftSidebar
-          frames={project.frames}
-          selectedFrameIds={editorState.selectedFrameIds}
+        {/* Left Sidebar - Inspector (moved from right) */}
+        <Inspector
+          state={inspectorState}
+          onStateChange={setInspectorState}
+          project={project}
+          editorState={editorState}
+          onFrameUpdate={handleFrameUpdate}
           onFrameSelect={handleFrameSelect}
-          onFrameFocus={handleFrameFocus}
-          onCreateFrame={() => {
-            // Create frame at center of viewport
-            const centerX = -editorState.boardState.scroll.x + 400;
-            const centerY = -editorState.boardState.scroll.y + 300;
-            handleCreateFrame({ x: centerX, y: centerY }, { w: 1920, h: 1080 });
-          }}
+          onFrameReorder={handleFrameReorder}
+          focusedFrame={focusedFrame}
         />
 
         {/* Center - Board or Frame Editor */}
@@ -273,16 +306,6 @@ export const FigmaEditor: React.FC = () => {
             />
           ) : null}
         </div>
-
-        {/* Right Sidebar - Inspector */}
-        <Inspector
-          state={inspectorState}
-          onStateChange={setInspectorState}
-          project={project}
-          editorState={editorState}
-          onFrameUpdate={handleFrameUpdate}
-          focusedFrame={focusedFrame}
-        />
       </div>
     </div>
   );

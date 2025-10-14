@@ -12,7 +12,7 @@ interface BoardViewProps {
   onFrameFocus: (frameId: string) => void;
   onCreateFrame: (position: { x: number; y: number }, size: { w: number; h: number }) => void;
   onFrameUpdate: (frameId: string, updates: Partial<Frame>) => void;
-  onBoardStateChange: (updates: Partial<typeof editorState.boardState>) => void;
+  onBoardStateChange: (updates: Partial<Project['board']>) => void;
 }
 
 export const BoardView: React.FC<BoardViewProps> = ({
@@ -32,6 +32,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const [selectionBox, setSelectionBox] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [draggedFrameId, setDraggedFrameId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
 
   // Convert screen coordinates to board coordinates
   const screenToBoard = useCallback((screenX: number, screenY: number) => {
@@ -43,6 +44,29 @@ export const BoardView: React.FC<BoardViewProps> = ({
       y: (screenY - rect.top - editorState.boardState.scroll.y) / editorState.boardState.zoom
     };
   }, [editorState.boardState.zoom, editorState.boardState.scroll]);
+
+  // Track space key for panning
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !isSpacePressed) {
+        setIsSpacePressed(true);
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setIsSpacePressed(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isSpacePressed]);
 
   // Handle mouse wheel zoom
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -71,7 +95,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
     });
 
     // Handle different tools
-    if (editorState.currentTool === 'hand' || e.button === 1 || (e.button === 0 && e.spaceKey)) {
+    if (editorState.currentTool === 'hand' || e.button === 1 || (e.button === 0 && isSpacePressed)) {
       // Pan mode
       setIsPanning(true);
       setPanStart({ x: e.clientX, y: e.clientY });

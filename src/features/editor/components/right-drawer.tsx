@@ -32,24 +32,26 @@ export const RightDrawer = () => {
   const { activeIds, trackItemsMap, transitionsMap } = useStore();
   const [trackItem, setTrackItem] = useState<ITrackItem | null>(null);
 
+  // Sync trackItem with trackItemsMap changes
   useEffect(() => {
-    console.log('RightDrawer: activeIds changed:', activeIds, 'trackItemsMap:', Object.keys(trackItemsMap));
+    console.log('RightDrawer: activeIds or trackItemsMap changed:', activeIds, 'trackItemsMap keys:', Object.keys(trackItemsMap));
     
     if (activeIds.length === 1) {
       const [id] = activeIds;
-      const trackItem = trackItemsMap[id];
-      console.log('RightDrawer: Selected item:', trackItem);
+      const updatedTrackItem = trackItemsMap[id];
+      console.log('RightDrawer: Looking for item with id:', id, 'Found:', updatedTrackItem);
       
-      if (trackItem) {
-        setTrackItem(trackItem);
+      if (updatedTrackItem) {
+        // Always update trackItem to reflect latest changes from trackItemsMap
+        setTrackItem(updatedTrackItem);
         // Update the layout store selected item
-        useLayoutStore.getState().setSelectedItem(trackItem);
+        useLayoutStore.getState().setSelectedItem(updatedTrackItem);
         // Auto-open the drawer when an item is selected
         useLayoutStore.getState().setIsRightDrawerOpen(true);
         useLayoutStore.getState().setRightDrawerContent('properties');
-        console.log('RightDrawer: Opening drawer for item:', trackItem.type);
+        console.log('RightDrawer: Updated trackItem for:', updatedTrackItem.type);
       } else {
-        console.log('RightDrawer: Item not found in trackItemsMap, checking transitionsMap:', transitionsMap[id]);
+        console.log('RightDrawer: Item not found in trackItemsMap');
       }
     } else {
       console.log('RightDrawer: No items selected or multiple items selected');

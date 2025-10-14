@@ -102,7 +102,26 @@ const useStore = create<ITimelineStore>((set) => ({
       scroll: scroll,
     })),
   setState: async (state) => {
-    return set({ ...state });
+    // Validate and sanitize duration and fps to prevent Infinity errors
+    const sanitizedState = { ...state };
+    
+    // Ensure valid duration
+    if (sanitizedState.duration !== undefined) {
+      if (!isFinite(sanitizedState.duration) || sanitizedState.duration <= 0) {
+        console.warn('Invalid duration detected, using default 5000ms:', sanitizedState.duration);
+        sanitizedState.duration = 5000; // 5 seconds in milliseconds
+      }
+    }
+    
+    // Ensure valid fps
+    if (sanitizedState.fps !== undefined) {
+      if (!isFinite(sanitizedState.fps) || sanitizedState.fps <= 0) {
+        console.warn('Invalid fps detected, using default 30:', sanitizedState.fps);
+        sanitizedState.fps = 30;
+      }
+    }
+    
+    return set(sanitizedState);
   },
   setPlayerRef: (playerRef: React.RefObject<PlayerRef> | null) =>
     set({ playerRef }),

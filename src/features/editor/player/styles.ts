@@ -49,7 +49,7 @@ export const calculateTextStyles = (
 	wordWrap: details.wordWrap || "normal",
 	wordBreak: details.wordBreak || "normal",
 	textTransform: details.textTransform || "none",
-	fontSize: details.fontSize || "16px",
+	fontSize: details.fontSize || "120px",
 	textAlign: details.textAlign || "left",
 	color: details.color || "#000000",
 	backgroundColor: details.backgroundColor || "transparent",
@@ -71,7 +71,8 @@ export const calculateContainerStyles = (
 		opacity: details.opacity !== undefined ? details.opacity / 100 : 1,
 		transformOrigin: details.transformOrigin || "center center",
 		filter: `brightness(${details.brightness}%) blur(${details.blur}px)`,
-		rotate: details.rotate || "0deg",
+		// Only use rotate if transform is not set (to avoid conflicts)
+		...(details.transform ? {} : { rotate: details.rotate || "0deg" }),
 		...overrides, // Merge overrides into the calculated styles
 	};
 };
