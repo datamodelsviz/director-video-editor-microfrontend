@@ -330,7 +330,7 @@ export const Inspector: React.FC<InspectorProps> = ({
                   ))}
                 </div>
 
-                {/* Workspace Properties (when no frame is selected) */}
+                {/* Board Properties (when no frame is selected) */}
                 {!selectedFrame && onProjectUpdate && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-12)', marginTop: 'var(--space-16)', paddingTop: 'var(--space-16)', borderTop: '1px solid var(--stroke)' }}>
                     <WorkspacePropertiesPanel 

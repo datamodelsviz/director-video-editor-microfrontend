@@ -91,7 +91,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </button>
       </div>
 
-      {/* Project Info */}
+      {/* Board Info */}
       <div 
         style={{ 
           marginLeft: 'auto', 

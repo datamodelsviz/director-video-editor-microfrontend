@@ -200,7 +200,7 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <FileText size={14} />
-                  New Project
+                  New Board
                 </button>
                 
                 <button
@@ -225,7 +225,7 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <FolderOpen size={14} />
-                  Open Project
+                  Open Board
                 </button>
                 
                 <button
@@ -250,7 +250,7 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <CloudUpload size={14} />
-                  Save Project
+                  Save Board
                 </button>
               </div>
             )}
@@ -263,7 +263,7 @@ export const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
           <button
             onClick={onExport}
             className="btn btn--primary"
-            title="Export Project"
+            title="Export Board"
             style={{
               height: 36,
               padding: '0 var(--space-12)',

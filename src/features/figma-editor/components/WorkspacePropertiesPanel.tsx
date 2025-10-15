@@ -104,7 +104,7 @@ export const WorkspacePropertiesPanel: React.FC<WorkspacePropertiesPanelProps> =
         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
       >
         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        Workspace Properties
+        Board Properties
       </button>
 
       {/* Collapsible Content */}
