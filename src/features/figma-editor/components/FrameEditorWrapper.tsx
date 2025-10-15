@@ -202,7 +202,15 @@ export const FrameEditorWrapper: React.FC<FrameEditorWrapperProps> = ({
   }
 
   return (
-    <div className="frame-editor-wrapper h-full w-full flex flex-col" style={{ background: 'var(--bg-canvas)' }}>
+    <div 
+      className="frame-editor-wrapper h-full w-full flex flex-col" 
+      style={{ 
+        background: 'var(--bg-canvas)',
+        backgroundImage: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px)',
+        backgroundSize: '16px 16px',
+        animation: 'zoomInFromCenter 0.5s cubic-bezier(0.2, 0, 0, 1)'
+      }}
+    >
       {/* Floating Media Menu Container - Keep hover state when moving between menu and panel */}
       <div 
         className="fixed left-4 top-4 z-[100]"
@@ -248,7 +256,7 @@ export const FrameEditorWrapper: React.FC<FrameEditorWrapperProps> = ({
             style={{ 
               background: 'var(--bg-canvas)',
               backgroundImage: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px)',
-              backgroundSize: '20px 20px'
+              backgroundSize: '16px 16px'
             }}
           >
             <FloatingControl />
