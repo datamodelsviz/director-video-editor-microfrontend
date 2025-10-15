@@ -14,6 +14,10 @@ interface BoardViewProps {
   onCreateFrame: (position: { x: number; y: number }, size: { w: number; h: number }) => void;
   onFrameUpdate: (frameId: string, updates: Partial<Frame>) => void;
   onBoardStateChange: (updates: Partial<Project['board']>) => void;
+  showComments?: boolean;
+  comments?: Array<{ id: string; frameId: string; content: string; x: number; y: number }>;
+  onAddCommentToFrame?: (frameId: string, x?: number, y?: number) => void;
+  onDeleteComment?: (commentId: string) => void;
 }
 
 export const BoardView: React.FC<BoardViewProps> = ({
@@ -23,7 +27,11 @@ export const BoardView: React.FC<BoardViewProps> = ({
   onFrameFocus,
   onCreateFrame,
   onFrameUpdate,
-  onBoardStateChange
+  onBoardStateChange,
+  showComments,
+  comments,
+  onAddCommentToFrame,
+  onDeleteComment
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
@@ -34,6 +42,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const [draggedFrameId, setDraggedFrameId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isSpacePressed, setIsSpacePressed] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; frameId: string } | null>(null);
 
   // Convert screen coordinates to board coordinates
   const screenToBoard = useCallback((screenX: number, screenY: number) => {
@@ -82,7 +91,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
     }
   }, [editorState.boardState.zoom, onBoardStateChange]);
 
-  // Handle mouse down
+  // Handle mouse down / context menu (right click)
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -96,6 +105,17 @@ export const BoardView: React.FC<BoardViewProps> = ({
              boardPos.y >= frame.position.y &&
              boardPos.y <= frame.position.y + frame.size.h;
     });
+
+    // Right click on a frame => open menu to add comment
+    if (e.button === 2) {
+      if (clickedFrame) {
+        e.preventDefault();
+        setContextMenu({ x: boardPos.x, y: boardPos.y, frameId: clickedFrame.id });
+        return;
+      }
+    } else if (contextMenu) {
+      setContextMenu(null);
+    }
 
     // Handle different tools
     if (editorState.currentTool === 'hand' || e.button === 1 || (e.button === 0 && isSpacePressed)) {
@@ -127,7 +147,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
         setSelectionBox({ x: boardPos.x, y: boardPos.y, width: 0, height: 0 });
       }
     }
-  }, [editorState.currentTool, project.frames, screenToBoard, onFrameSelect]);
+  }, [editorState.currentTool, project.frames, screenToBoard, onFrameSelect, isSpacePressed, contextMenu]);
 
   // Handle mouse move
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -313,6 +333,48 @@ export const BoardView: React.FC<BoardViewProps> = ({
             height: '100%'
           }}
         >
+          {contextMenu && (
+            <div
+              style={{
+                position: 'absolute',
+                left: contextMenu.x,
+                top: contextMenu.y,
+                background: 'var(--bg-elev-2)',
+                border: '1px solid var(--stroke)',
+                borderRadius: 6,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                padding: 6,
+                zIndex: 5,
+                minWidth: 140
+              }}
+            >
+              <button
+                onClick={() => {
+                  if (onAddCommentToFrame) {
+                    const frame = project.frames.find(f => f.id === contextMenu.frameId);
+                    if (frame) {
+                      const placeX = frame.position.x + frame.size.w + 140;
+                      const placeY = contextMenu.y;
+                      onAddCommentToFrame(contextMenu.frameId, placeX, placeY);
+                    }
+                  }
+                  setContextMenu(null);
+                }}
+                className="btn"
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  padding: '6px 8px'
+                }}
+              >
+                New comment
+              </button>
+            </div>
+          )}
           {/* Guides */}
           <Guides
             guides={project.board.guides}
@@ -339,6 +401,92 @@ export const BoardView: React.FC<BoardViewProps> = ({
               zoom={editorState.boardState.zoom}
             />
           ))}
+
+          {/* Comments (Post-it) and dotted arrows */}
+          {showComments && comments && comments.map(c => {
+            const frame = project.frames.find(f => f.id === c.frameId);
+            if (!frame) return null;
+            const startX = frame.position.x + frame.size.w;
+            const startY = frame.position.y + frame.size.h / 2;
+            const endX = c.x;
+            const endY = c.y;
+            const ctrlX1 = startX + Math.abs(endX - startX) * 0.5;
+            const ctrlY1 = startY;
+            const ctrlX2 = endX - Math.abs(endX - startX) * 0.5;
+            const ctrlY2 = endY;
+            const path = `M ${startX} ${startY} C ${ctrlX1} ${ctrlY1}, ${ctrlX2} ${ctrlY2}, ${endX} ${endY}`;
+            const noteHeight = Math.max(60, Math.floor(frame.size.h * 0.14));
+            const noteWidth = Math.floor(noteHeight * 1.2);
+            return (
+              <React.Fragment key={c.id}>
+                <svg
+                  style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+                  viewBox={`0 0 100 100`}
+                  preserveAspectRatio="none"
+                >
+                  <g transform={`scale(1)`}>
+                    <path d={path} stroke="rgba(255,255,255,0.5)" strokeWidth={2} fill="none" strokeDasharray="4 4" />
+                  </g>
+                </svg>
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: c.x - noteWidth / 2,
+                    top: c.y - noteHeight / 2,
+                    width: noteWidth,
+                    height: noteHeight,
+                    background: '#FFF59D',
+                    color: '#333',
+                    border: '1px solid rgba(0,0,0,0.2)',
+                    borderRadius: 6,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                    padding: '8px 10px',
+                    fontSize: Math.floor(noteHeight * 0.18),
+                    lineHeight: 1.4
+                  }}
+                >
+                  {/* Delete button */}
+                  {onDeleteComment && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDeleteComment(c.id); }}
+                      title="Delete Comment"
+                      style={{
+                        position: 'absolute',
+                        right: -10,
+                        top: -10,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        lineHeight: '20px'
+                      }}
+                    >
+                      -
+                    </button>
+                  )}
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{c.content}</div>
+                  {/* Paper fold bottom-right */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      bottom: 0,
+                      width: Math.max(12, Math.floor(noteWidth * 0.18)),
+                      height: Math.max(12, Math.floor(noteWidth * 0.18)),
+                      background: 'linear-gradient(135deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.15) 100%)',
+                      clipPath: 'polygon(0 100%, 100% 0, 100% 100%)',
+                      borderTop: '1px solid rgba(0,0,0,0.1)',
+                      borderLeft: '1px solid rgba(0,0,0,0.1)'
+                    }}
+                  />
+                </div>
+              </React.Fragment>
+            );
+          })}
 
           {/* Selection Box */}
           {selectionBox && (

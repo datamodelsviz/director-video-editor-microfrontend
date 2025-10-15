@@ -138,6 +138,45 @@ export const FigmaEditor: React.FC = () => {
     parentId?: string;
   }>>([]);
 
+  // Board comments (post-it style)
+  const [showComments, setShowComments] = useState<boolean>(true);
+  const [boardComments, setBoardComments] = useState<Array<{
+    id: string;
+    frameId: string;
+    content: string;
+    x: number; // board coordinate
+    y: number; // board coordinate
+  }>>([]);
+
+  const handleAddCommentToFrame = useCallback((frameId: string, x?: number, y?: number) => {
+    const frame = project.frames.find(f => f.id === frameId);
+    if (!frame) return;
+    const content = prompt('Add comment');
+    if (!content) return;
+    const defaultX = typeof x === 'number' ? x : frame.position.x + frame.size.w + 120;
+    const defaultY = typeof y === 'number' ? y : frame.position.y + frame.size.h / 2;
+    const newComment = {
+      id: `c-${Date.now()}`,
+      frameId,
+      content,
+      x: defaultX,
+      y: defaultY
+    };
+    setBoardComments(prev => [...prev, newComment]);
+  }, [project.frames]);
+
+  const handleDeleteComment = useCallback((commentId: string) => {
+    setBoardComments(prev => prev.filter(c => c.id !== commentId));
+  }, []);
+
+  const handleUpdateComment = useCallback((commentId: string, updates: Partial<{ content: string; x: number; y: number }>) => {
+    setBoardComments(prev => prev.map(c => c.id === commentId ? { ...c, ...updates } : c));
+  }, []);
+
+  const handleToggleComments = useCallback(() => {
+    setShowComments(prev => !prev);
+  }, []);
+
   // Focus controller
   const { enterFrameFocus, exitFrameFocus } = useFocusController({
     editorState,
@@ -366,6 +405,11 @@ export const FigmaEditor: React.FC = () => {
               onCreateFrame={handleCreateFrame}
               onFrameUpdate={handleFrameUpdate}
               onBoardStateChange={handleBoardStateChange}
+              showComments={showComments}
+              comments={boardComments}
+              onAddCommentToFrame={handleAddCommentToFrame}
+              onDeleteComment={handleDeleteComment}
+              onUpdateComment={handleUpdateComment}
             />
           ) : focusedFrame ? (
             <FrameEditorWrapper
@@ -385,6 +429,8 @@ export const FigmaEditor: React.FC = () => {
               boardState={editorState.boardState}
               onBoardStateChange={handleBoardStateChange}
               onNotesClick={handleNotesClick}
+              showComments={showComments}
+              onToggleComments={handleToggleComments}
             />
           )}
 

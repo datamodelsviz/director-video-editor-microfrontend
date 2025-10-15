@@ -7,6 +7,7 @@ import {
   FileText,
   Grid3x3,
   Ruler,
+  StickyNote,
   LucideIcon
 } from 'lucide-react';
 
@@ -16,6 +17,8 @@ interface FloatingToolbarProps {
   boardState: BoardState;
   onBoardStateChange: (updates: Partial<BoardState>) => void;
   onNotesClick: () => void;
+  showComments?: boolean;
+  onToggleComments?: () => void;
 }
 
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
@@ -23,7 +26,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   onToolChange,
   boardState,
   onBoardStateChange,
-  onNotesClick
+  onNotesClick,
+  showComments,
+  onToggleComments
 }) => {
   const tools: Array<{ id: Tool; label: string; Icon: LucideIcon; shortcut: string }> = [
     { id: 'move', label: 'Move', Icon: MousePointer2, shortcut: 'V' },
@@ -127,6 +132,22 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         }}
       >
         <FileText size={16} />
+      </button>
+
+      {/* Comments Toggle */}
+      <button
+        onClick={onToggleComments}
+        className={`btn btn--icon ${showComments ? 'btn--active' : ''}`}
+        title={showComments ? 'Hide Comments' : 'Show Comments'}
+        style={{
+          width: 36,
+          height: 36,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <StickyNote size={16} />
       </button>
     </div>
   );
