@@ -203,48 +203,31 @@ export const FrameEditorWrapper: React.FC<FrameEditorWrapperProps> = ({
 
   return (
     <div className="frame-editor-wrapper h-full w-full flex flex-col" style={{ background: 'var(--bg-canvas)' }}>
-      {/* Frame Header */}
+      {/* Floating Media Menu Container - Keep hover state when moving between menu and panel */}
       <div 
-        className="h-12 flex items-center justify-between px-4"
-        style={{ 
-          background: 'var(--bg-panel)', 
-          borderBottom: '1px solid var(--stroke)' 
-        }}
+        className="fixed left-4 top-4 z-[100]"
+        onMouseEnter={() => setIsSidebarHovered(true)}
+        onMouseLeave={() => setIsSidebarHovered(false)}
       >
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={onExitFocus}
-            className="btn"
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}
-          >
-            <span>←</span>
-            <span>Back to Board</span>
-            <kbd className="kbd">Esc</kbd>
-          </button>
-          <div style={{ width: 1, height: 16, background: 'var(--stroke)' }} />
-          <h2 style={{ fontSize: 'var(--fs-13)', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {frame.name}
-          </h2>
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-12)', fontSize: 'var(--fs-12)', color: 'var(--text-secondary)' }}>
-          <span>{frame.size.w}×{frame.size.h}</span>
-          <span>•</span>
-          <span>{frame.duration}s</span>
-          <span>•</span>
-          <span>{frame.fps}fps</span>
-          <span>•</span>
-          <span>{frame.layers.length} layers</span>
-        </div>
-      </div>
-
-      {/* Horizontal Media Toolbar */}
-      <HorizontalMediaToolbar />
-
-      {/* Floating panel for media library */}
-      <div className="relative">
+        {/* Media Menu */}
         <div 
-          className={`floating-panel fixed left-4 top-[120px] z-[9999] transition-all duration-200 ${
+          className="floating-media-menu"
+          style={{
+            background: 'var(--bg-elev-2)',
+            border: '1px solid var(--stroke)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(12px)'
+          }}
+        >
+          <HorizontalMediaToolbar />
+        </div>
+
+        {/* Action bar moved to FloatingActionBar in FigmaEditor */}
+
+        {/* Floating panel for media library */}
+        <div 
+          className={`floating-panel mt-2 transition-all duration-200 ${
             isSidebarHovered ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -260,7 +243,14 @@ export const FrameEditorWrapper: React.FC<FrameEditorWrapperProps> = ({
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 flex flex-col">
           {/* Canvas Area with Scene */}
-          <div className="flex-1 relative overflow-hidden" style={{ background: 'var(--bg-canvas)' }}>
+          <div 
+            className="flex-1 relative overflow-hidden" 
+            style={{ 
+              background: 'var(--bg-canvas)',
+              backgroundImage: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px)',
+              backgroundSize: '20px 20px'
+            }}
+          >
             <FloatingControl />
             <CropModal />
             <Scene stateManager={stateManagerRef.current} />
@@ -283,6 +273,37 @@ export const FrameEditorWrapper: React.FC<FrameEditorWrapperProps> = ({
 
         {/* Right Drawer - Properties Panel */}
         <RightDrawer />
+      </div>
+
+      {/* Status Bar at Bottom - Frame Info */}
+      <div 
+        style={{
+          height: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 var(--space-16)',
+          background: 'var(--bg-panel)',
+          borderTop: '1px solid var(--stroke)',
+          fontSize: 'var(--fs-12)',
+          color: 'var(--text-secondary)',
+          zIndex: 10
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-12)' }}>
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{frame.name}</span>
+          <span>•</span>
+          <span>{frame.size.w}×{frame.size.h}</span>
+          <span>•</span>
+          <span>{frame.duration}s</span>
+          <span>•</span>
+          <span>{frame.fps}fps</span>
+          <span>•</span>
+          <span>{frame.layers.length} layers</span>
+        </div>
+        <div style={{ fontSize: 'var(--fs-11)', color: 'var(--text-tertiary)' }}>
+          Frame View
+        </div>
       </div>
     </div>
   );

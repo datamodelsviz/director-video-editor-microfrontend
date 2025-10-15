@@ -4,6 +4,7 @@ import { FramePreview } from './FramePreview';
 import { Rulers } from './Rulers';
 import { Guides } from './Guides';
 import { SelectionBox } from './SelectionBox';
+import { FrameArrows } from './FrameArrows';
 
 interface BoardViewProps {
   project: Project;
@@ -44,6 +45,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
       y: (screenY - rect.top - editorState.boardState.scroll.y) / editorState.boardState.zoom
     };
   }, [editorState.boardState.zoom, editorState.boardState.scroll]);
+
+  // No auto-center - let initial state handle positioning
 
   // Track space key for panning
   useEffect(() => {
@@ -316,6 +319,14 @@ export const BoardView: React.FC<BoardViewProps> = ({
             zoom={editorState.boardState.zoom}
           />
 
+          {/* Frame Arrows - Connect frames in sequence order */}
+          <FrameArrows
+            frames={project.frames}
+            sequenceOrder={project.sequence.order}
+            zoom={editorState.boardState.zoom}
+            scroll={editorState.boardState.scroll}
+          />
+
           {/* Frame Previews */}
           {project.frames.map(frame => (
             <FramePreview
@@ -342,49 +353,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
         </div>
       </div>
 
-      {/* Zoom Controls */}
-      <div className="absolute top-4 right-4 flex flex-col space-y-2">
-        <button
-          onClick={() => {
-            const newZoom = Math.min(5, editorState.boardState.zoom * 1.2);
-            onBoardStateChange({ zoom: newZoom });
-          }}
-          className="btn btn--icon"
-          style={{ background: 'var(--bg-panel)', border: '1px solid var(--stroke)' }}
-        >
-          +
-        </button>
-        <button
-          onClick={() => {
-            const newZoom = Math.max(0.1, editorState.boardState.zoom * 0.8);
-            onBoardStateChange({ zoom: newZoom });
-          }}
-          className="btn btn--icon"
-          style={{ background: 'var(--bg-panel)', border: '1px solid var(--stroke)' }}
-        >
-          −
-        </button>
-        <button
-          onClick={() => onBoardStateChange({ zoom: 1 })}
-          className="btn btn--icon"
-          style={{ background: 'var(--bg-panel)', border: '1px solid var(--stroke)', fontSize: 'var(--fs-11)' }}
-        >
-          1:1
-        </button>
-      </div>
 
       {/* Zoom Level Indicator */}
-      <div 
-        className="absolute bottom-4 left-4 px-3 py-1 text-xs"
-        style={{ 
-          background: 'var(--bg-panel)', 
-          border: '1px solid var(--stroke)',
-          borderRadius: 'var(--radius-sm)',
-          color: 'var(--text-secondary)'
-        }}
-      >
-        {Math.round(editorState.boardState.zoom * 100)}%
-      </div>
     </div>
   );
 };

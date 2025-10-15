@@ -59,37 +59,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Separator */}
       <div style={{ width: 1, height: 24, background: 'var(--stroke)' }} />
 
-      {/* Zoom Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
-        <button
-          onClick={() => onBoardStateChange({ zoom: Math.min(5, boardState.zoom * 1.2) })}
-          className="btn btn--icon"
-          title="Zoom In (Cmd/Ctrl +)"
-        >
-          +
-        </button>
-        <span 
-          style={{ 
-            minWidth: 60, 
-            textAlign: 'center', 
-            fontSize: 'var(--fs-12)', 
-            color: 'var(--text-secondary)' 
-          }}
-        >
-          {Math.round(boardState.zoom * 100)}%
-        </span>
-        <button
-          onClick={() => onBoardStateChange({ zoom: Math.max(0.1, boardState.zoom * 0.8) })}
-          className="btn btn--icon"
-          title="Zoom Out (Cmd/Ctrl -)"
-        >
-          −
-        </button>
-      </div>
-
-      {/* Separator */}
-      <div style={{ width: 1, height: 24, background: 'var(--stroke)' }} />
-
       {/* Toggles */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
         <button

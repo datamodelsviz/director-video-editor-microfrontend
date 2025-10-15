@@ -1,5 +1,19 @@
 import React, { useState, useCallback } from 'react';
 import { Project, EditorState, InspectorTab, Frame } from '../types';
+import { Plus, Trash2, GripVertical, MoreHorizontal } from 'lucide-react';
+import { NotesPanel } from './NotesPanel';
+import { WorkspacePropertiesPanel } from './WorkspacePropertiesPanel';
+
+interface Note {
+  id: string;
+  content: string;
+  author: string;
+  timestamp: Date;
+  isLiked: boolean;
+  likes: number;
+  replies: Note[];
+  parentId?: string;
+}
 
 interface InspectorProps {
   state: {
@@ -12,7 +26,12 @@ interface InspectorProps {
   onFrameUpdate: (frameId: string, updates: Partial<Frame>) => void;
   onFrameSelect: (frameId: string, multiSelect?: boolean) => void;
   onFrameReorder: (fromIndex: number, toIndex: number) => void;
+  onFrameAdd?: () => void;
+  onFrameDelete?: (frameId: string) => void;
+  onProjectUpdate?: (updates: Partial<Project>) => void;
   focusedFrame: Frame | null;
+  notes?: Note[];
+  onNotesChange?: (notes: Note[]) => void;
 }
 
 export const Inspector: React.FC<InspectorProps> = ({
@@ -23,11 +42,16 @@ export const Inspector: React.FC<InspectorProps> = ({
   onFrameUpdate,
   onFrameSelect,
   onFrameReorder,
-  focusedFrame
+  onFrameAdd,
+  onFrameDelete,
+  onProjectUpdate,
+  focusedFrame,
+  notes = [],
+  onNotesChange
 }) => {
   const tabs: Array<{ id: InspectorTab; label: string }> = [
     { id: 'frame', label: 'Frame' },
-    { id: 'layers', label: 'Layers' }
+    { id: 'notes', label: 'Notes' }
   ];
 
   const selectedFrame = state.selectedItem?.type === 'frame' 
@@ -37,6 +61,8 @@ export const Inspector: React.FC<InspectorProps> = ({
   // Drag and drop state
   const [draggedFrameId, setDraggedFrameId] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [hoveredFrameId, setHoveredFrameId] = useState<string | null>(null);
+  const [contextMenuFrameId, setContextMenuFrameId] = useState<string | null>(null);
 
   // Get frames in sequence order
   const orderedFrames = project.sequence.order
@@ -75,6 +101,20 @@ export const Inspector: React.FC<InspectorProps> = ({
     setDraggedFrameId(null);
     setDragOverIndex(null);
   }, [draggedFrameId, orderedFrames, onFrameReorder]);
+
+  // Close context menu when clicking outside
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (contextMenuFrameId) {
+      setContextMenuFrameId(null);
+    }
+  }, [contextMenuFrameId]);
+
+  React.useEffect(() => {
+    if (contextMenuFrameId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [contextMenuFrameId, handleClickOutside]);
 
   return (
     <div 
@@ -118,9 +158,27 @@ export const Inspector: React.FC<InspectorProps> = ({
             {editorState.mode === 'board' ? (
               // Board mode: Show all frames with drag-and-drop
               <>
-                <h3 style={{ fontSize: 'var(--fs-13)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Frames ({orderedFrames.length})
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h3 style={{ fontSize: 'var(--fs-13)', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Frames ({orderedFrames.length})
+                  </h3>
+                  {onFrameAdd && (
+                    <button
+                      onClick={onFrameAdd}
+                      className="btn btn--icon"
+                      title="Add Frame"
+                      style={{
+                        width: 28,
+                        height: 28,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Plus size={14} />
+                    </button>
+                  )}
+                </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                   {orderedFrames.map((frame, index) => (
@@ -150,17 +208,36 @@ export const Inspector: React.FC<InspectorProps> = ({
                         opacity: draggedFrameId === frame.id ? 0.5 : 1
                       }}
                       onMouseEnter={(e) => {
+                        setHoveredFrameId(frame.id);
                         if (!editorState.selectedFrameIds.includes(frame.id) && dragOverIndex !== index) {
                           e.currentTarget.style.background = 'var(--bg-elev-1)';
                         }
                       }}
                       onMouseLeave={(e) => {
+                        setHoveredFrameId(null);
                         if (!editorState.selectedFrameIds.includes(frame.id) && dragOverIndex !== index) {
                           e.currentTarget.style.background = 'transparent';
                         }
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)', marginBottom: 'var(--space-4)' }}>
+                        {/* Drag Handle */}
+                        <div 
+                          style={{ 
+                            cursor: 'grab',
+                            opacity: hoveredFrameId === frame.id ? 1 : 0.3,
+                            transition: 'opacity var(--dur-1) var(--ease-standard)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 16,
+                            height: 16
+                          }}
+                          title="Drag to reorder"
+                        >
+                          <GripVertical size={12} />
+                        </div>
+                        
                         <div 
                           style={{ 
                             width: 8, 
@@ -174,16 +251,94 @@ export const Inspector: React.FC<InspectorProps> = ({
                             flexShrink: 0
                           }} 
                         />
-                        <div style={{ fontSize: 'var(--fs-12)', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        <div style={{ fontSize: 'var(--fs-12)', fontWeight: 600, color: 'var(--text-primary)', flex: 1 }}>
                           {frame.name}
                         </div>
+                        
+                        {/* Context Menu Button */}
+                        {hoveredFrameId === frame.id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setContextMenuFrameId(contextMenuFrameId === frame.id ? null : frame.id);
+                            }}
+                            className="btn btn--icon"
+                            title="More options"
+                            style={{
+                              width: 20,
+                              height: 20,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              opacity: 0.7
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                          >
+                            <MoreHorizontal size={12} />
+                          </button>
+                        )}
                       </div>
+                      
+                      {/* Context Menu */}
+                      {contextMenuFrameId === frame.id && (
+                        <div 
+                          style={{
+                            position: 'absolute',
+                            top: '100%',
+                            right: 0,
+                            background: 'var(--bg-elev-2)',
+                            border: '1px solid var(--stroke)',
+                            borderRadius: 'var(--radius-sm)',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                            zIndex: 100,
+                            minWidth: 120
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onFrameDelete) onFrameDelete(frame.id);
+                              setContextMenuFrameId(null);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: 'var(--space-8) var(--space-12)',
+                              fontSize: 'var(--fs-11)',
+                              color: 'var(--text-primary)',
+                              background: 'transparent',
+                              border: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 'var(--space-8)'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-elev-1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <Trash2 size={12} />
+                            Delete Frame
+                          </button>
+                        </div>
+                      )}
                       <div style={{ fontSize: 'var(--fs-11)', color: 'var(--text-tertiary)' }}>
                         {frame.size.w}×{frame.size.h} • {frame.duration}s • {frame.layers.length} layers
                       </div>
                     </div>
                   ))}
                 </div>
+
+                {/* Workspace Properties (when no frame is selected) */}
+                {!selectedFrame && onProjectUpdate && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-12)', marginTop: 'var(--space-16)', paddingTop: 'var(--space-16)', borderTop: '1px solid var(--stroke)' }}>
+                    <WorkspacePropertiesPanel 
+                      project={project} 
+                      onProjectUpdate={onProjectUpdate} 
+                    />
+                  </div>
+                )}
 
                 {/* Frame Properties (when frame is selected) */}
                 {selectedFrame && (
@@ -471,18 +626,11 @@ export const Inspector: React.FC<InspectorProps> = ({
           </div>
         )}
 
-        {state.activeTab === 'layers' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)' }}>
-            <h3 style={{ fontSize: 'var(--fs-13)', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Layers
-            </h3>
-            <div style={{ fontSize: 'var(--fs-12)', color: 'var(--text-tertiary)' }}>
-              {editorState.mode === 'frame' 
-                ? 'Your existing layer list will appear here'
-                : 'Focus a frame to edit layers'
-              }
-            </div>
-          </div>
+        {state.activeTab === 'notes' && onNotesChange && (
+          <NotesPanel 
+            notes={notes} 
+            onNotesChange={onNotesChange} 
+          />
         )}
 
       </div>

@@ -163,40 +163,43 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
         onDoubleClick();
       }}
     >
-      {/* Frame Title */}
+      {/* Frame Title - DEBUG: 3x larger font */}
       <div className="frame__title" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
         <div 
           style={{ 
-            width: 8, 
-            height: 8, 
+            width: 12, 
+            height: 12, 
             borderRadius: '50%', 
             background: getLabelColor(frame.labelColor),
             flexShrink: 0
           }} 
         />
-        <span style={{ fontWeight: 600 }}>{frame.name}</span>
-        <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>
+        <span style={{ fontWeight: 600, fontSize: '48px' }}>{frame.name}</span>
+        <span style={{ color: 'var(--text-tertiary)', fontWeight: 400, fontSize: '30px' }}>
           – {frame.size.w}×{frame.size.h}
         </span>
       </div>
 
-      {/* Frame Info */}
+      {/* Frame Info - DEBUG: 3x larger font + coordinates */}
       <div 
         style={{
           position: 'absolute',
           bottom: 'var(--space-8)',
           left: 'var(--space-8)',
-          fontSize: 'var(--fs-11)',
+          fontSize: '30px',
           color: 'var(--text-tertiary)',
-          background: 'rgba(0,0,0,0.5)',
-          padding: '4px 8px',
-          borderRadius: 'var(--radius-xs)'
+          background: 'rgba(0,0,0,0.7)',
+          padding: '8px 12px',
+          borderRadius: 'var(--radius-xs)',
+          fontWeight: 500
         }}
       >
         {frame.duration}s • {frame.fps}fps • {frame.layers.length} layers
       </div>
 
-      {/* Frame Content Preview */}
+      {/* DEBUG: Coordinates Display */}
+
+      {/* Frame Content Preview - DEBUG: 3x larger font */}
       <div 
         style={{
           width: '100%',
@@ -205,12 +208,12 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           color: 'var(--text-tertiary)',
-          fontSize: 'var(--fs-13)'
+          fontSize: '117px'
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🎬</div>
-          <div>Double-click to edit</div>
+          <div style={{ fontSize: 108, marginBottom: 27 }}>🎬</div>
+          <div style={{ fontSize: '54px', fontWeight: 500, color: '#666666' }}>Double-click to edit</div>
         </div>
       </div>
 

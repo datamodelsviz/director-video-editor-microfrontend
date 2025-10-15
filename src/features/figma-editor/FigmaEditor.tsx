@@ -3,7 +3,10 @@ import { Project, EditorState, EditorMode, InspectorTab, Frame } from './types';
 import { BoardView } from './components/BoardView';
 import { FrameEditorWrapper } from './components/FrameEditorWrapper';
 import { Inspector } from './components/Inspector';
-import { Toolbar } from './components/Toolbar';
+import { StatusBar } from './components/StatusBar';
+import { FloatingToolbar } from './components/FloatingToolbar';
+import { ZoomControls } from './components/ZoomControls';
+import { FloatingActionBar } from './components/FloatingActionBar';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useProjectState } from './hooks/useProjectState';
 import { useFocusController } from './hooks/useFocusController';
@@ -16,72 +19,74 @@ import './styles/tokens.css';
 // Sample project data
 const createSampleProject = (): Project => ({
   projectId: 'figma-project-1',
-  board: {
-    zoom: 0.85,
-    scroll: { x: 0, y: 0 },
-    snap: true,
-    rulers: true,
-    guides: [
-      { id: 'guide-1', orientation: 'vertical', pos: 1280 },
-      { id: 'guide-2', orientation: 'horizontal', pos: 200 }
-    ]
+    board: {
+      zoom: 0.23,
+      scroll: { x: 0, y: 0 },
+      snap: true,
+      rulers: false,
+    guides: []
   },
-  frames: [
-    {
-      id: 'frame-1',
-      name: 'Intro',
-      position: { x: -1800, y: 0 },
-      size: { w: 1920, h: 1080 },
-      background: '#0b0b0b',
-      fps: 30,
-      duration: 6.0,
-      posterTime: 0.25,
-      labelColor: 'purple',
-      layers: [],
-      timeline: {
+  workspace: {
+    defaultSize: { w: 1080, h: 1920 },
+    backgroundColor: '#0b0b0b',
+    gridColor: '#333333'
+  },
+      frames: [
+      {
+        id: 'frame-1',
+        name: 'Intro',
+        position: { x: 130, y: 650 },
+        size: { w: 1080, h: 1920 },
+        background: '#0b0b0b',
+        fps: 30,
         duration: 6.0,
+          posterTime: 0.25,
+          labelColor: 'purple',
+          layers: [],
+          timeline: {
+            duration: 6.0,
+            fps: 30,
+            tracks: [],
+            playheadTime: 0
+          }
+        },
+      {
+        id: 'frame-2',
+        name: 'Main Content',
+        position: { x: 2000, y: 0 },
+        size: { w: 1080, h: 1920 },
+        background: '#0b0b0b',
         fps: 30,
-        tracks: [],
-        playheadTime: 0
-      }
-    },
-    {
-      id: 'frame-2',
-      name: 'Main Content',
-      position: { x: 200, y: 0 },
-      size: { w: 1920, h: 1080 },
-      background: '#0b0b0b',
-      fps: 30,
-      duration: 10.0,
-      posterTime: 2.0,
-      labelColor: 'blue',
-      layers: [],
-      timeline: {
         duration: 10.0,
+          posterTime: 2.0,
+          labelColor: 'blue',
+          layers: [],
+          timeline: {
+            duration: 10.0,
+            fps: 30,
+            tracks: [],
+            playheadTime: 0
+          }
+        },
+      {
+        id: 'frame-3',
+        name: 'Outro',
+        position: { x: 3350, y: 650 },
+        size: { w: 1080, h: 1920 },
+        background: '#0b0b0b',
         fps: 30,
-        tracks: [],
-        playheadTime: 0
-      }
-    },
-    {
-      id: 'frame-3',
-      name: 'Outro',
-      position: { x: 2200, y: 0 },
-      size: { w: 1920, h: 1080 },
-      background: '#0b0b0b',
-      fps: 30,
-      duration: 4.0,
-      posterTime: 1.0,
-      labelColor: 'green',
-      layers: [],
-      timeline: {
         duration: 4.0,
-        fps: 30,
-        tracks: [],
-        playheadTime: 0
-      }
-    }
-  ],
+          posterTime: 1.0,
+          labelColor: 'green',
+          layers: [],
+          timeline: {
+            duration: 4.0,
+            fps: 30,
+            tracks: [],
+            playheadTime: 0
+          }
+        }
+      ],
   sequence: {
     order: ['frame-1', 'frame-2', 'frame-3'],
     transitions: [
@@ -109,7 +114,7 @@ export const FigmaEditor: React.FC = () => {
     focusedFrameId: null,
     selectedFrameIds: [],
     selectedLayerIds: [],
-    currentTool: 'move',
+    currentTool: 'hand',
     boardState: project.board,
     proxyQuality: 'half',
     isPlaying: false
@@ -120,6 +125,18 @@ export const FigmaEditor: React.FC = () => {
     activeTab: 'frame' as InspectorTab,
     selectedItem: null as { type: 'frame' | 'layer'; id: string } | null
   });
+
+  // Notes state
+  const [notes, setNotes] = useState<Array<{
+    id: string;
+    content: string;
+    author: string;
+    timestamp: Date;
+    isLiked: boolean;
+    likes: number;
+    replies: any[];
+    parentId?: string;
+  }>>([]);
 
   // Focus controller
   const { enterFrameFocus, exitFrameFocus } = useFocusController({
@@ -210,6 +227,11 @@ export const FigmaEditor: React.FC = () => {
     updateFrame(frameId, updates);
   }, [updateFrame]);
 
+  // Handle project update
+  const handleProjectUpdate = useCallback((updates: Partial<Project>) => {
+    updateProject(prev => ({ ...prev, ...updates }));
+  }, [updateProject]);
+
   // Handle frame reordering
   const handleFrameReorder = useCallback((fromIndex: number, toIndex: number) => {
     const newOrder = [...project.sequence.order];
@@ -225,20 +247,6 @@ export const FigmaEditor: React.FC = () => {
     }));
   }, [project.sequence.order, updateProject]);
 
-  // Handle layer selection
-  const handleLayerSelect = useCallback((layerId: string) => {
-    setEditorState(prev => ({
-      ...prev,
-      selectedLayerIds: [layerId]
-    }));
-    
-    setInspectorState(prev => ({
-      ...prev,
-      activeTab: 'layers',
-      selectedItem: { type: 'layer', id: layerId }
-    }));
-  }, []);
-
   // Handle board state changes
   const handleBoardStateChange = useCallback((updates: Partial<typeof editorState.boardState>) => {
     setEditorState(prev => ({
@@ -252,6 +260,73 @@ export const FigmaEditor: React.FC = () => {
     }));
   }, [updateProject]);
 
+  // Handle frame delete
+  const handleFrameDelete = useCallback((frameId: string) => {
+    if (window.confirm('Are you sure you want to delete this frame?')) {
+      removeFrame(frameId);
+    }
+  }, [removeFrame]);
+
+  // Handle export
+  const handleExport = useCallback(() => {
+    console.log('Export project:', project);
+    alert('Export functionality will be implemented here');
+  }, [project]);
+
+  // Handle file actions
+  const handleNew = useCallback(() => {
+    console.log('New project');
+    alert('New project functionality will be implemented here');
+  }, []);
+
+  const handleOpen = useCallback(() => {
+    console.log('Open project');
+    alert('Open project functionality will be implemented here');
+  }, []);
+
+  const handleSave = useCallback(() => {
+    console.log('Save project:', project);
+    alert('Save project functionality will be implemented here');
+  }, [project]);
+
+  // Handle recenter view
+  const handleRecenter = useCallback(() => {
+    // Simple recenter - show all frames
+    handleBoardStateChange({
+      zoom: 0.23,
+      scroll: { x: 0, y: 0 }
+    });
+  }, [handleBoardStateChange]);
+
+  // Handle notes click
+  const handleNotesClick = useCallback(() => {
+    setInspectorState(prev => ({
+      ...prev,
+      activeTab: 'notes'
+    }));
+  }, []);
+
+  // Handle frame add from Inspector (with default position and size)
+  const handleFrameAddFromInspector = useCallback(() => {
+    const defaultPosition = { x: 200 * (project.frames.length + 1), y: 0 };
+    const defaultSize = { w: 1080, h: 1920 };
+    handleCreateFrame(defaultPosition, defaultSize);
+  }, [handleCreateFrame, project.frames.length]);
+
+  // Handle layer selection
+  const handleLayerSelect = useCallback((layerId: string) => {
+    setEditorState(prev => ({
+      ...prev,
+      selectedLayerIds: [layerId]
+    }));
+    
+    setInspectorState(prev => ({
+      ...prev,
+      activeTab: 'notes',
+      selectedItem: { type: 'layer', id: layerId }
+    }));
+  }, []);
+
   // Get focused frame
   const focusedFrame = editorState.focusedFrameId 
     ? project.frames.find(f => f.id === editorState.focusedFrameId)
@@ -259,30 +334,26 @@ export const FigmaEditor: React.FC = () => {
 
   return (
     <div className="figma-editor h-screen w-full flex flex-col overflow-hidden">
-      {/* Top Toolbar */}
-      <Toolbar
-        currentTool={editorState.currentTool}
-        onToolChange={(tool) => setEditorState(prev => ({ ...prev, currentTool: tool }))}
-        boardState={editorState.boardState}
-        onBoardStateChange={handleBoardStateChange}
-        project={project}
-        editorState={editorState}
-        onPlay={() => setEditorState(prev => ({ ...prev, isPlaying: !prev.isPlaying }))}
-      />
-
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - Inspector (moved from right) */}
-        <Inspector
-          state={inspectorState}
-          onStateChange={setInspectorState}
-          project={project}
-          editorState={editorState}
-          onFrameUpdate={handleFrameUpdate}
-          onFrameSelect={handleFrameSelect}
-          onFrameReorder={handleFrameReorder}
-          focusedFrame={focusedFrame}
-        />
+        {/* Left Sidebar - Inspector (Hidden in frame view) */}
+        {editorState.mode === 'board' && (
+          <Inspector
+            state={inspectorState}
+            onStateChange={setInspectorState}
+            project={project}
+            editorState={editorState}
+            onFrameUpdate={handleFrameUpdate}
+            onFrameSelect={handleFrameSelect}
+            onFrameReorder={handleFrameReorder}
+            onFrameAdd={handleFrameAddFromInspector}
+            onFrameDelete={handleFrameDelete}
+            onProjectUpdate={handleProjectUpdate}
+            focusedFrame={focusedFrame}
+            notes={notes}
+            onNotesChange={setNotes}
+          />
+        )}
 
         {/* Center - Board or Frame Editor */}
         <div className="flex-1 relative overflow-hidden">
@@ -305,8 +376,52 @@ export const FigmaEditor: React.FC = () => {
               selectedLayerIds={editorState.selectedLayerIds}
             />
           ) : null}
+
+          {/* Floating Toolbar - Only show in board mode */}
+          {editorState.mode === 'board' && (
+            <FloatingToolbar
+              currentTool={editorState.currentTool}
+              onToolChange={(tool) => setEditorState(prev => ({ ...prev, currentTool: tool }))}
+              boardState={editorState.boardState}
+              onBoardStateChange={handleBoardStateChange}
+              onNotesClick={handleNotesClick}
+            />
+          )}
+
+          {/* Zoom Controls - Only show in board mode */}
+          {editorState.mode === 'board' && (
+            <ZoomControls
+              boardState={editorState.boardState}
+              onBoardStateChange={handleBoardStateChange}
+              onRecenter={handleRecenter}
+            />
+          )}
+
+          {/* Floating Action Bar - Always visible */}
+          <FloatingActionBar
+            editorState={editorState}
+            onExport={handleExport}
+            onNew={handleNew}
+            onOpen={handleOpen}
+            onSave={handleSave}
+            onBackToBoard={editorState.mode === 'frame' ? () => setEditorState(prev => ({ ...prev, mode: 'board', focusedFrameId: null })) : undefined}
+            onRender={editorState.mode === 'frame' ? () => {
+              console.log('Render frame:', editorState.focusedFrameId);
+              alert('Render functionality will be implemented here');
+            } : undefined}
+            frame={editorState.mode === 'frame' ? project.frames.find(f => f.id === editorState.focusedFrameId) : undefined}
+            onFrameUpdate={editorState.mode === 'frame' ? handleFrameUpdate : undefined}
+          />
         </div>
       </div>
+
+      {/* Status Bar at bottom (Only in board mode) */}
+      {editorState.mode === 'board' && (
+        <StatusBar
+          project={project}
+          editorState={editorState}
+        />
+      )}
     </div>
   );
 };

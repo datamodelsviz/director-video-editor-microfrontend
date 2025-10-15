@@ -84,9 +84,16 @@ export interface Transition {
 }
 
 // Project
+export interface Workspace {
+  defaultSize: { w: number; h: number };
+  backgroundColor: string;
+  gridColor: string;
+}
+
 export interface Project {
   projectId: string;
   board: BoardState;
+  workspace: Workspace;
   frames: Frame[];
   sequence: Sequence;
 }
@@ -109,7 +116,7 @@ export interface EditorState {
 }
 
 // Inspector
-export type InspectorTab = 'frame' | 'layers';
+export type InspectorTab = 'frame' | 'notes';
 
 export interface InspectorState {
   activeTab: InspectorTab;

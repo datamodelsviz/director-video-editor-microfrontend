@@ -26,7 +26,7 @@ export const useFocusController = ({
     
     setInspectorState(prev => ({
       ...prev,
-      activeTab: 'layers'
+      activeTab: 'notes'
     }));
   }, [setEditorState, setInspectorState]);
 
