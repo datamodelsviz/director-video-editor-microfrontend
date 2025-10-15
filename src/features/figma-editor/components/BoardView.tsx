@@ -18,6 +18,8 @@ interface BoardViewProps {
   comments?: Array<{ id: string; frameId: string; content: string; x: number; y: number }>;
   onAddCommentToFrame?: (frameId: string, x?: number, y?: number) => void;
   onDeleteComment?: (commentId: string) => void;
+  onUpdateComment?: (commentId: string, updates: Partial<{ content: string; x: number; y: number }>) => void;
+  focusCommentId?: string;
 }
 
 export const BoardView: React.FC<BoardViewProps> = ({
@@ -31,7 +33,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
   showComments,
   comments,
   onAddCommentToFrame,
-  onDeleteComment
+  onDeleteComment,
+  onUpdateComment,
+  focusCommentId
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
@@ -42,7 +46,17 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const [draggedFrameId, setDraggedFrameId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isSpacePressed, setIsSpacePressed] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; frameId: string } | null>(null);
+  // Simplified: no context menu; direct add on right-click
+  const commentRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+  const MAX_COMMENT_CHARS = 280;
+  useEffect(() => {
+    if (focusCommentId && commentRefs.current[focusCommentId]) {
+      const el = commentRefs.current[focusCommentId]!;
+      el.focus();
+      // select all
+      el.setSelectionRange(0, el.value.length);
+    }
+  }, [focusCommentId]);
 
   // Convert screen coordinates to board coordinates
   const screenToBoard = useCallback((screenX: number, screenY: number) => {
@@ -106,15 +120,15 @@ export const BoardView: React.FC<BoardViewProps> = ({
              boardPos.y <= frame.position.y + frame.size.h;
     });
 
-    // Right click on a frame => open menu to add comment
-    if (e.button === 2) {
+    // Direct add on right-click: place a note to the right at clicked height
+    if (e.button === 2 && onAddCommentToFrame) {
       if (clickedFrame) {
         e.preventDefault();
-        setContextMenu({ x: boardPos.x, y: boardPos.y, frameId: clickedFrame.id });
+        const placeX = clickedFrame.position.x + clickedFrame.size.w + 40;
+        const placeY = boardPos.y;
+        onAddCommentToFrame(clickedFrame.id, placeX, placeY);
         return;
       }
-    } else if (contextMenu) {
-      setContextMenu(null);
     }
 
     // Handle different tools
@@ -147,7 +161,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
         setSelectionBox({ x: boardPos.x, y: boardPos.y, width: 0, height: 0 });
       }
     }
-  }, [editorState.currentTool, project.frames, screenToBoard, onFrameSelect, isSpacePressed, contextMenu]);
+  }, [editorState.currentTool, project.frames, screenToBoard, onFrameSelect, isSpacePressed, onAddCommentToFrame]);
 
   // Handle mouse move
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -332,49 +346,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
             width: '100%',
             height: '100%'
           }}
+          onContextMenu={(e) => e.preventDefault()}
         >
-          {contextMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                left: contextMenu.x,
-                top: contextMenu.y,
-                background: 'var(--bg-elev-2)',
-                border: '1px solid var(--stroke)',
-                borderRadius: 6,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                padding: 6,
-                zIndex: 5,
-                minWidth: 140
-              }}
-            >
-              <button
-                onClick={() => {
-                  if (onAddCommentToFrame) {
-                    const frame = project.frames.find(f => f.id === contextMenu.frameId);
-                    if (frame) {
-                      const placeX = frame.position.x + frame.size.w + 140;
-                      const placeY = contextMenu.y;
-                      onAddCommentToFrame(contextMenu.frameId, placeX, placeY);
-                    }
-                  }
-                  setContextMenu(null);
-                }}
-                className="btn"
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  padding: '6px 8px'
-                }}
-              >
-                New comment
-              </button>
-            </div>
-          )}
           {/* Guides */}
           <Guides
             guides={project.board.guides}
@@ -420,7 +393,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
             return (
               <React.Fragment key={c.id}>
                 <svg
-                  style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+                  style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 3 }}
                   viewBox={`0 0 100 100`}
                   preserveAspectRatio="none"
                 >
@@ -441,34 +414,64 @@ export const BoardView: React.FC<BoardViewProps> = ({
                     borderRadius: 6,
                     boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
                     padding: '8px 10px',
-                    fontSize: Math.floor(noteHeight * 0.18),
-                    lineHeight: 1.4
+                    fontSize: Math.floor(noteHeight * 0.14 * 1.3),
+                    lineHeight: 1.4,
+                    zIndex: 4
                   }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {/* Delete button */}
                   {onDeleteComment && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); onDeleteComment(c.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm('Delete this comment?')) {
+                          onDeleteComment(c.id);
+                        }
+                      }}
                       title="Delete Comment"
                       style={{
                         position: 'absolute',
-                        right: -10,
-                        top: -10,
-                        width: 20,
-                        height: 20,
+                        right: -14,
+                        top: -14,
+                        width: 32,
+                        height: 32,
                         borderRadius: '50%',
                         background: '#ef4444',
                         color: 'white',
                         border: 'none',
                         cursor: 'pointer',
-                        fontWeight: 700,
-                        lineHeight: '20px'
+                        fontWeight: 900,
+                        lineHeight: '32px',
+                        fontSize: 18
                       }}
                     >
                       -
                     </button>
                   )}
-                  <div style={{ whiteSpace: 'pre-wrap' }}>{c.content}</div>
+                  <textarea
+                    defaultValue={c.content}
+                    maxLength={MAX_COMMENT_CHARS}
+                    onChange={(e) => onUpdateComment && onUpdateComment(c.id, { content: e.target.value })}
+                    tabIndex={0}
+                    style={{
+                      width: '100%',
+                      height: noteHeight - 26, // subtract padding/header
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: '#333',
+                      resize: 'none',
+                      overflow: 'auto',
+                      font: 'inherit',
+                      lineHeight: 1.4,
+                      whiteSpace: 'pre-wrap'
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    ref={(el) => { commentRefs.current[c.id] = el; }}
+                  />
                   {/* Paper fold bottom-right */}
                   <div
                     style={{

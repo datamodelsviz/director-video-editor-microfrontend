@@ -83,7 +83,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
       {/* Separator */}
       <div style={{ width: 1, height: 24, background: 'var(--stroke)', margin: '0 var(--space-4)' }} />
 
-      {/* Toggles */}
+      {/* Toggles (Snap only) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
         <button
           onClick={() => onBoardStateChange({ snap: !boardState.snap })}
@@ -99,40 +99,10 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         >
           <Grid3x3 size={16} />
         </button>
-        <button
-          onClick={() => onBoardStateChange({ rulers: !boardState.rulers })}
-          className={`btn btn--icon ${boardState.rulers ? 'btn--active' : ''}`}
-          title="Toggle Rulers (Shift+R)"
-          style={{
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <Ruler size={16} />
-        </button>
       </div>
 
       {/* Separator */}
       <div style={{ width: 1, height: 24, background: 'var(--stroke)', margin: '0 var(--space-4)' }} />
-
-      {/* Notes Button */}
-      <button
-        onClick={onNotesClick}
-        className="btn btn--icon"
-        title="Notes (N)"
-        style={{
-          width: 36,
-          height: 36,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <FileText size={16} />
-      </button>
 
       {/* Comments Toggle */}
       <button

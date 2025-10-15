@@ -147,12 +147,12 @@ export const FigmaEditor: React.FC = () => {
     x: number; // board coordinate
     y: number; // board coordinate
   }>>([]);
+  const [focusCommentId, setFocusCommentId] = useState<string | null>(null);
 
   const handleAddCommentToFrame = useCallback((frameId: string, x?: number, y?: number) => {
     const frame = project.frames.find(f => f.id === frameId);
     if (!frame) return;
-    const content = prompt('Add comment');
-    if (!content) return;
+    const content = 'New comment';
     const defaultX = typeof x === 'number' ? x : frame.position.x + frame.size.w + 120;
     const defaultY = typeof y === 'number' ? y : frame.position.y + frame.size.h / 2;
     const newComment = {
@@ -163,6 +163,8 @@ export const FigmaEditor: React.FC = () => {
       y: defaultY
     };
     setBoardComments(prev => [...prev, newComment]);
+    setShowComments(true);
+    setFocusCommentId(newComment.id);
   }, [project.frames]);
 
   const handleDeleteComment = useCallback((commentId: string) => {
@@ -410,6 +412,7 @@ export const FigmaEditor: React.FC = () => {
               onAddCommentToFrame={handleAddCommentToFrame}
               onDeleteComment={handleDeleteComment}
               onUpdateComment={handleUpdateComment}
+              focusCommentId={focusCommentId || undefined}
             />
           ) : focusedFrame ? (
             <FrameEditorWrapper
